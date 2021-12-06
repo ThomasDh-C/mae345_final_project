@@ -1,3 +1,5 @@
+# Controller Ideas and To-Do
+
 1. RED filter - works
 
 current:
@@ -26,6 +28,11 @@ the white lines
 
 
 KT - book detection. testing bayybbbeeeee
+
 BELLA - random yeet function
+
 TDC - program structure + optical flow on obstacles
+
 JACOB - white lines (don't take that out of context)
+
+*A question Thomas had earlier: to use python functions from* `thatfile.py` *, use* `from thatfile import *`
