@@ -19,18 +19,27 @@ def white_lines(frame):
 ## Compute a starting y coordinate (assuming the centerline of the course is y = 0)
 def get_starting_y(frame):
     # still need to figure out the maths on this
+
+    frame_height = frame.shape[0]
+
+    while frame_height >= 0:
+        frame_height -= 1
+
+
     partition_array = np.argpartition(frame[120])
     print("Partition array: ", partition_array)
     return 0
 
 ## quick test script. After windows stop displaying, y-coordinate is calculated and printed in terminal
 if __name__ == '__main__':
-    frame = cv2.imread("g:/My Drive/3Junior/Fall/MAE 345/mae345_final_project/finding_red/wheresthered.png")
+    frame = cv2.imread("wheresthered.png")
     
+    cv2.imshow('frame', frame)
+
     while(True):
         white_line_photo = white_lines(frame)
 
-        cv2.imshow('frame', frame)
+        # cv2.imshow('frame', frame)
         cv2.imshow('white lines',white_line_photo)
 
         # Hit p to save white lines.

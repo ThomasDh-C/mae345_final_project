@@ -198,7 +198,8 @@ else:
             
             if ret and elapsed > 5.0:
                 
-                cv2.imshow('frame', red_filter(frame))
+                cv2.imshow('frame', frame)
+                cv2.imshow('filtered_frame', red_filter(frame))
                 
                 if cv2.waitKey(1) & 0xFF == ord('p'):
                     cv2.imwrite('original_frame.png', frame)
