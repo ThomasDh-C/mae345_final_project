@@ -128,9 +128,18 @@ def check_contours(frame):
     else:
         return False
 
+def detection_center(detection):
+    """Computes the center x, y coordinates of the object"""
+    center_x = (detection[3] + detection[5]) / 2.0 - 0.5
+    center_y = (detection[4] + detection[6]) / 2.0 - 0.5
+    return (center_x, center_y)
+
+def norm(vec):
+    """Computes the length of the 2D vector"""
+    return np.sqrt(vec[0]**2 + vec[1]**2)
+
 def closest_detection(detections):
-    """NOT SURE - KATIE
-    """
+    """Determines closest detected object"""
     if len(detections) == 0:
         return None
         
@@ -146,8 +155,7 @@ def closest_detection(detections):
     return champ_detection
 
 def detect_book(frame):
-    """KATIE FUNCS
-    """
+    """KATIE FUNCS"""
     image = frame
     tracking_label = 84
     confidence = 0.2
@@ -172,7 +180,28 @@ def detect_book(frame):
 
     return det
 
-# def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
+def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
+    """Controller for moving to book once detected"""
+    set_size = 0.82
+    if box_width > set_size or box_height > set_size:
+        return True, x_cur, y_cur
+
+    x_command, y_command = x_cur, y_cur
+    dx = .08
+    ok_region=.1
+    
+    if box_x<-ok_region:
+        y_command+=dx
+    if box_x>ok_region:
+        y_command-=dx
+    
+    # only once centred move forward
+    if box_x > -ok_region and box_x < ok_region:
+        x_command+=dx
+
+    # Set position
+    cf.commander.send_position_setpoint(x_command, y_command, 0.5, 0)
+    return False, x_command, y_command
 
 def key_press(key, cf_command, cap):
     """Aysnc key press handler

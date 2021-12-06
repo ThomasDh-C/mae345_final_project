@@ -18,6 +18,9 @@ def white_lines(frame):
 
 ## Compute a starting y coordinate (assuming the centerline of the course is y = 0)
 def get_starting_y(frame):
+    """
+    
+    """
     # still need to figure out the maths on this
 
     frame_height = frame.shape[0]

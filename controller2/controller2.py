@@ -4,7 +4,7 @@ from pynput import Listener
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.position_hl_commander import PositionHlCommander
-from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, ascend_and_hover, key_press
+from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press
 
 group_number = 12
 camera_number = 0
