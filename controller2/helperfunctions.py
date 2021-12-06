@@ -74,6 +74,42 @@ def set_pid_controller(cf):
     cf.param.set_value('kalman.resetEstimation', '0')
     time.sleep(2)
 
+def move_to_setpoint(cf, start, end, v):
+    steps = 30
+    grad = np.array(start) - np.array(end)
+    dist = np.linalg.norm(grad)
+    step = grad/steps
+    t = dist/v/steps
+    
+    for step_idx in range(1,steps+1):
+        temp_pos = np.array(start) + step*step_idx
+        cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+        time.sleep(t)
+    # cf.commander.send_hover_setpoint(end[0], end[1], end[2],0)
+    time.sleep(2)
+
+    return end
+
+def land(cf, curr):
+    z = curr[2]
+    for _ in range(30):
+        cf.commander.send_hover_setpoint(0, 0, 0,z)
+        time.sleep(0.1)
+    # Descend:
+    for pos in np.linspace(z,0.0,10):
+        cf.commander.send_hover_setpoint(0, 0, 0, pos)
+        time.sleep(0.1)
+    # Stop all motion:
+    for _ in range(10):
+        cf.commander.send_stop_setpoint()
+        time.sleep(0.1)
+
+def relative_move(cf, start, dx, v):
+    end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
+    return move_to_setpoint(cf, start, end, v)
+
+
+
 def find_greatest_contour(contours):
     """Finds greatest contour len=2 tuple of: its area, its index in contours list
     """
@@ -129,7 +165,7 @@ def check_contours(frame):
         return False
 
 def detection_center(detection):
-    """Computes the center x, y coordinates of the object"""
+    """Computes the center x, y coordinates of the book"""
     center_x = (detection[3] + detection[5]) / 2.0 - 0.5
     center_y = (detection[4] + detection[6]) / 2.0 - 0.5
     return (center_x, center_y)
@@ -139,7 +175,7 @@ def norm(vec):
     return np.sqrt(vec[0]**2 + vec[1]**2)
 
 def closest_detection(detections):
-    """Determines closest detected object"""
+    """Determines closest detected book"""
     if len(detections) == 0:
         return None
         
@@ -148,17 +184,14 @@ def closest_detection(detections):
     for detection in detections:
         # ( _, class_id, confidence, box_x, box_y, box_width, box_height)
         detect_vec = detection_center(detection)
-        dist_to_detect = norm(detect_vec)
         if norm(detect_vec)< norm(champ):
             champ_detection = detection
             champ = detect_vec
     return champ_detection
 
-def detect_book(frame):
+def detect_book(model, frame, tracking_label, confidence):
     """Detect if there is a book in the frame"""
     image = frame
-    tracking_label = 84
-    confidence = 0.2
     image_height, image_width, _ = image.shape
 
     # create blob from image
@@ -195,7 +228,7 @@ def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
     if box_x>ok_region:
         y_command-=dx
     
-    # only once centred move forward
+    # only once centered move forward
     if box_x > -ok_region and box_x < ok_region:
         x_command+=dx
 

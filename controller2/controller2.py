@@ -4,7 +4,8 @@ from pynput import keyboard
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.position_hl_commander import PositionHlCommander
-from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press
+from controller2.helperfunctions import move_to_setpoint
+from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press, relative_move, land
 
 group_number = 12
 camera_number = 0
@@ -16,20 +17,17 @@ if check_crazyflie_available():
         cf = scf.cf
         cap = start_video(camera_number)
         set_pid_controller(cf) # reset now that firmly on the ground
-        cf_command = PositionHlCommander(cf, default_velocity=.2, default_height=.25)
+
+        curr = [0,0,0]
         
         with keyboard.Listener(on_press= lambda key: key_press(key, cf_command, cap)) as listener:
-            listener.join() # listen for command q being pressed without while loop ... 
-        
             # fly fly away
-            cf_command.take_off()
-            cf_command.move_distance(2.59,0,0) # relative move to table
-            time.sleep(3)
-            cf_command.move_distance(0,0,0.75) # relative ascend
-            time.sleep(3)
-            cf_command.move_distance(0.6,0,0) # relative over table
-            time.sleep(3)
-            cf_command.land()
+            curr = relative_move(cf, curr, [2.59,0,0], .2)
+            curr = relative_move(cf, curr, [0,0,0.75], .2)
+            curr = relative_move(cf, curr, [0.6,0,0], .2)
+            curr = relative_move(cf, curr, [0.6,0,0], .2)
+            land(cf, curr)
+
     print("Touchdown")
 else: 
     print("DorEye down mayday")
