@@ -155,7 +155,7 @@ def closest_detection(detections):
     return champ_detection
 
 def detect_book(frame):
-    """KATIE FUNCS"""
+    """Detect if there is a book in the frame"""
     image = frame
     tracking_label = 84
     confidence = 0.2

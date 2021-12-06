@@ -1,5 +1,5 @@
 import time
-from pynput import Listener
+from pynput import keyboard
 
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
@@ -18,7 +18,7 @@ if check_crazyflie_available():
         set_pid_controller(cf) # reset now that firmly on the ground
         cf_command = PositionHlCommander(cf, default_velocity=.2, default_height=.25)
         
-        with Listener(on_press= lambda key: key_press(key, cf_command, cap)) as listener:
+        with keyboard.Listener(on_press= lambda key: key_press(key, cf_command, cap)) as listener:
             listener.join() # listen for command q being pressed without while loop ... 
         
             # fly fly away
