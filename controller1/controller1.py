@@ -48,7 +48,7 @@ def ascend_and_hover(cf):
         time.sleep(0.1)
     # Hover at 0.5 meters:
     for _ in range(20):
-        cf.commander.send_hover_setpoint(0, 0, 0, 0.5)
+        cf.commander.send_hover_setpoint(0, 0, 0, 0.25)
         time.sleep(0.1)
     return
 
@@ -72,11 +72,11 @@ def findGreatestContour(contours):
 def red_filter(frame):
     blurred = cv2.GaussianBlur(frame,(7,7),0)
     hsv_frame = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-    #      h s v
-    llb = (0,3,0)
-    ulb = (20,40,255)
-    lb = (120, 3, 0)
-    ub = (180, 255, 255)
+    #      h    s    v
+    llb = (0,   3,   0)
+    ulb = (25,  255, 255)
+    lb =  (120, 3,   0)
+    ub =  (180, 255, 255)
 
     lowreds = cv2.inRange(hsv_frame, llb, ulb)
     highreds = cv2.inRange(hsv_frame, lb, ub)
@@ -109,28 +109,39 @@ def check_contours(frame):
 
 
 # Follow the setpoint sequence trajectory:
-def adjust_position(cf, current_y):
+def adjust_position(cf, current_x, current_y):
 
     print('Adjusting position')
+    dist_to_table = 2.59 # in meters
+    dist_to_land = 0.559
 
-    steps_per_meter = int(10)
-    for i in range(steps_per_meter):
-        current_y = current_y - 1.0/float(steps_per_meter)
-        position = [0, current_y, 0.5, 0.0]
+    # translate along course
+    num_steps = 40
+    step_size = dist_to_table / num_steps
+    for temp_x in np.arange(current_x, current_x+dist_to_table, step_size):
+        cf.commander.send_position_setpoint(temp_x, current_y, 0.25, 0)
+        time.sleep(0.2)
+    current_x = current_x+dist_to_table
+    cf.commander.send_hover_setpoint(current_x, current_y, 0.25, 0)
+    time.sleep(3)
 
-        print('Setting position {}'.format(position))
-        for i in range(10):
-            cf.commander.send_position_setpoint(position[0],
-                                                position[1],
-                                                position[2],
-                                                position[3])
-            time.sleep(0.1)
+    # translate up
+    for temp_z in np.linspace(.25, 1, 10):
+        cf.commander.send_position_setpoint(current_x, current_y, temp_z, 0)
+        time.sleep(.3)
+    time.sleep(3)
+    # translate forwards
+    for temp_x in np.linspace(current_x, current_x+dist_to_land, 10):
+        cf.commander.send_position_setpoint(current_x, current_y, 1.0, 0)
+        time.sleep(0.2)
+    current_x = current_x + dist_to_land
+    time.sleep(3)
 
     cf.commander.send_stop_setpoint()
     # Make sure that the last packet leaves before the link is closed
     # since the message queue is not flushed before closing
     time.sleep(0.1)
-    return current_y
+    return current_x, current_y
 
 
 # Hover, descend, and stop all motion:
@@ -138,19 +149,67 @@ def hover_and_descend(cf):
     print('Descending:')
     # Hover at 0.5 meters:
     for _ in range(30):
-        cf.commander.send_hover_setpoint(0, 0, 0, 0.5)
+        cf.commander.send_hover_setpoint(0, 0, 0, 1.0)
         time.sleep(0.1)
     # Descend:
     for y in range(10):
         cf.commander.send_hover_setpoint(0, 0, 0, (10 - y) / 25)
         time.sleep(0.1)
     # Stop all motion:
-    for i in range(10):
+    for _ in range(10):
         cf.commander.send_stop_setpoint()
         time.sleep(0.1)
     return
 
+def closest_detection(detections):
+    if len(detections) == 0:
+        return None
+        
+    champ = (float('infinity'), float('infinity'))
+    champ_detection = None
+    for detection in detections:
+        # ( _, class_id, confidence, box_x, box_y, box_width, box_height)
+        detect_vec = detection_center(detection)
+        dist_to_detect = norm(detect_vec)
+        if norm(detect_vec)< norm(champ):
+            champ_detection = detection
+            champ = detect_vec
+    return champ_detection
 
+def detect_book(frame):
+    image = frame
+    tracking_label = 84
+    confidence = 0.2
+    image_height, image_width, _ = image.shape
+
+    # create blob from image
+    blob = cv2.dnn.blobFromImage(image=image, size=(300, 300), mean=(104, 117, 123), 
+                                             swapRB=True)
+   
+    # forward propagate image
+    model.setInput(blob)
+    detections = model.forward()
+
+    # select detections that match selected class label
+    matching_detections = [d for d in detections[0, 0] if d[1] == tracking_label]
+
+    # select confident detections
+    confident_detections = [d for d in matching_detections if d[2] > confidence]
+
+    # get detection closest to center of field of view and draw it
+    det = closest_detection(confident_detections)
+
+    return det
+
+# def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
+
+    
+def show_video_feed(frame):
+    cv2.imshow('frame', red_filter(frame))
+                
+    if cv2.waitKey(1) & 0xFF == ord('p'):
+        cv2.imwrite('original_frame.png', frame)
+        cv2.imwrite('red_filtered_frame.png', red_filter(frame))
 
 
 group_number = 12
@@ -182,40 +241,21 @@ else:
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         # Get the Crazyflie class instance:
         cf = scf.cf
-
         cap = cv2.VideoCapture(camera)
     
-        current_y = 0.0
-
         # Initialize and ascend:
-        t = time.time()
-        ascended_bool = 0
+        while not cap.isOpened():
+            time.sleep(.1)
+        start_t = time.time()
+        current_x, current_y = 0.0, 0.0
 
-        while(cap.isOpened()):
-            # Capture frame-by-frame
-            ret, frame = cap.read()
-            elapsed = time.time() - t
-            
-            if ret and elapsed > 5.0:
-                
-                cv2.imshow('frame', red_filter(frame))
-                
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-                    
-                # if(ascended_bool==0):
-                #     set_PID_controller(cf)
-                #     ascend_and_hover(cf)
-                #     ascended_bool = 1
-                # else:
-                #     if(check_contours(frame)):
-                #         current_y = adjust_position(cf, current_y)
-
-            # if(elapsed > 10.0):
-            #     break            
-        
+       
+        set_PID_controller(cf)
+        ascend_and_hover(cf)
+        current_x, current_y = adjust_position(cf, current_x, current_y)
+                       
         # Descend and stop all motion:
-        # hover_and_descend(cf)
+        hover_and_descend(cf)
         
 print("we made it everybody")
 # Release the capture
