@@ -20,7 +20,7 @@ if check_crazyflie_available():
 
         curr = [0,0,0]
         
-        with keyboard.Listener(on_press= lambda key: key_press(key, cf_command, cap)) as listener:
+        with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
             # fly fly away
             curr = relative_move(cf, curr, [2.59,0,0], .2)
             curr = relative_move(cf, curr, [0,0,0.75], .2)

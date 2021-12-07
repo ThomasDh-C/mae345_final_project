@@ -85,6 +85,7 @@ def move_to_setpoint(cf, start, end, v):
         temp_pos = np.array(start) + step*step_idx
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
         time.sleep(t)
+    cf.commander.send_hover_setpoint(0, 0, 0, end[2])
     # cf.commander.send_hover_setpoint(end[0], end[1], end[2],0)
     time.sleep(2)
 
@@ -236,12 +237,12 @@ def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
     cf.commander.send_position_setpoint(x_command, y_command, 0.5, 0)
     return False, x_command, y_command
 
-def key_press(key, cf_command, cap):
+def key_press(key, cf, cap, curr):
     """Aysnc key press handler
     """
     # quitting
     if key=='q':
-        cf_command.land()
+        land(cf, curr)
         cap.release()
         cv2.destroyAllWindows()
         return False
