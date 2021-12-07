@@ -54,7 +54,7 @@ else:
                 
                 if cv2.waitKey(1) & 0xFF == ord('p'):
                     # update name if using this again
-                    cv2.imwrite('book4.png', frame)
+                    cv2.imwrite('book7.png', frame)
                 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
