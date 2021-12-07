@@ -74,23 +74,39 @@ def set_pid_controller(cf):
     cf.param.set_value('kalman.resetEstimation', '0')
     time.sleep(2)
 
+
 def move_to_setpoint(cf, start, end, v):
+
+    # move along x,y
+    z_start, z_end = start[2], end[2]
+    end[2] = start[2]
     steps = 30
-    grad = np.array(start) - np.array(end)
+    grad = np.array(end) - np.array(start)
     dist = np.linalg.norm(grad)
     step = grad/steps
     t = dist/v/steps
-    
-    for step_idx in range(1,steps+1):
-        temp_pos = np.array(start) + step*step_idx
-        cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+    if start != end:
+        for step_idx in range(1,steps+1):
+            temp_pos = np.array(start) + step*step_idx
+            cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+            time.sleep(t)
+    # cf.commander.send_stop_setpoint()
+    print("in move_to_setpoint: done translating")
+    time.sleep(0.2)
+    print("in move_to_setpoint: about to move up")
+
+    # move along z
+    steps = 10
+    t = (z_end-z_start) / v / steps
+    for idx in range(1, steps+1):
+        cf.commander.send_hover_setpoint(0, 0, 0, z_start + (idx/steps)*(z_end-z_start))
         time.sleep(t)
     for _ in range(20):
-        cf.commander.send_hover_setpoint(0, 0, 0, end[2])
+        cf.commander.send_hover_setpoint(0, 0, 0, z_end)
         time.sleep(0.1)
-    # cf.commander.send_hover_setpoint(end[0], end[1], end[2],0)
-    # time.sleep(2)
 
+    end[2] = z_end
+    print("in move_to_setpoint: returning")
     return end
     
 def takeoff(cf, height):
@@ -102,6 +118,8 @@ def takeoff(cf, height):
     for _ in range(20):
         cf.commander.send_hover_setpoint(0, 0, 0, height)
         time.sleep(0.1)
+
+    return [0, 0, height]
 
 
 def land(cf, curr):

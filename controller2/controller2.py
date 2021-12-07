@@ -20,11 +20,22 @@ if check_crazyflie_available():
         
         with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
             # fly fly away
-            takeoff(cf, .25)
-            curr = relative_move(cf, curr, [2.59,0,0], .2)
-            curr = relative_move(cf, curr, [0,0,0.75], .2)
-            curr = relative_move(cf, curr, [0.6,0,0], .2)
-            curr = relative_move(cf, curr, [0.6,0,0], .2)
+            curr = takeoff(cf, .4)
+            ####
+            print("takeoff successful")
+            print("starting relative move...")
+            ####
+            curr = relative_move(cf, curr, [2.59,0,0], .3)
+            ####
+            print("done with first relative move")
+            print("Position after first relative move: ", curr)
+            print("starting second relative move...")
+            ####
+            curr = relative_move(cf, curr, [0,0,0.75], .1)
+            print("starting third relative move...")
+            curr = relative_move(cf, curr, [0.6,0,0], .1)
+            print("starting fourth relative move...")
+            curr = relative_move(cf, curr, [0.6,0,0], .1)
             land(cf, curr)
 
     print("Touchdown")
