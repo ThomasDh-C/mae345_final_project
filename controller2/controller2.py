@@ -5,6 +5,8 @@ from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press, relative_move, land, takeoff
 
+from find_white import get_starting_y
+
 group_number = 12
 camera_number = 0
 
@@ -23,6 +25,9 @@ if check_crazyflie_available():
             curr = takeoff(cf, .4)
             ####
             print("takeoff successful")
+            print("Current Position: ", curr)
+            ret, frame = cap.read()
+            print("I think my y-coordinate is: ", get_starting_y(frame))
             print("starting relative move...")
             ####
             curr = relative_move(cf, curr, [2.59,0,0], .3)

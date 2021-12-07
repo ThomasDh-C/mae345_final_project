@@ -23,6 +23,8 @@ def get_starting_y(frame):
     """
     # still need to figure out the maths on this
 
+    frame = white_lines(frame)
+
     frame_height = frame.shape[0]
     frame_width = frame.shape[1]
 
@@ -37,16 +39,16 @@ def get_starting_y(frame):
 
 
     ## test code
-    while True:
-        cv2.imshow('left half', left_half)
-        cv2.imshow('right half', right_half)
+    # while True:
+    #     cv2.imshow('left half', left_half)
+    #     cv2.imshow('right half', right_half)
 
-        if cv2.waitKey(1) & 0xFF == ord('p'):
-            cv2.imwrite("left_half.png", left_half)
-            cv2.imwrite("right_half.png", right_half)
+    #     if cv2.waitKey(1) & 0xFF == ord('p'):
+    #         cv2.imwrite("left_half.png", left_half)
+    #         cv2.imwrite("right_half.png", right_half)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    #     if cv2.waitKey(1) & 0xFF == ord('q'):
+    #         break
 
     # get the average pixel of the white lines along row_to_check
     left_champ = np.average(np.argmax(left_half[row_to_check]))
@@ -62,9 +64,9 @@ def get_starting_y(frame):
     px_to_meters = 1.32 / white_line_distance
 
     ## test code
-    print("left champ: ", left_champ)
-    print("right champ: ", right_champ)
-    print("center line: ", center_line)
+    # print("left champ: ", left_champ)
+    # print("right champ: ", right_champ)
+    # print("center line: ", center_line)
 
     # MATHS: factors to consider in this calculation:
     #   Height at which picture is taken (easy to know)

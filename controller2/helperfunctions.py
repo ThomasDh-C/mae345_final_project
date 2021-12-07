@@ -271,6 +271,7 @@ def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
 def key_press(key, cf, cap, curr):
     """Aysnc key press handler
     """
+    print("Key press detected: ", key)
     # quitting
     if key=='q':
         land(cf, curr)
