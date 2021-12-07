@@ -3,9 +3,7 @@ from pynput import keyboard
 
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from cflib.positioning.position_hl_commander import PositionHlCommander
-from controller2.helperfunctions import move_to_setpoint
-from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press, relative_move, land
+from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press, relative_move, land, takeoff
 
 group_number = 12
 camera_number = 0
@@ -22,6 +20,7 @@ if check_crazyflie_available():
         
         with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
             # fly fly away
+            takeoff(cf, .25)
             curr = relative_move(cf, curr, [2.59,0,0], .2)
             curr = relative_move(cf, curr, [0,0,0.75], .2)
             curr = relative_move(cf, curr, [0.6,0,0], .2)

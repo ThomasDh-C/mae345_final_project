@@ -85,11 +85,24 @@ def move_to_setpoint(cf, start, end, v):
         temp_pos = np.array(start) + step*step_idx
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
         time.sleep(t)
-    cf.commander.send_hover_setpoint(0, 0, 0, end[2])
+    for _ in range(20):
+        cf.commander.send_hover_setpoint(0, 0, 0, end[2])
+        time.sleep(0.1)
     # cf.commander.send_hover_setpoint(end[0], end[1], end[2],0)
-    time.sleep(2)
+    # time.sleep(2)
 
     return end
+    
+def takeoff(cf, height):
+    # Ascend:
+    for y in range(5):
+        cf.commander.send_hover_setpoint(0, 0, 0, y/5 * height)
+        time.sleep(0.1)
+    # Hover at 0.5 meters:
+    for _ in range(20):
+        cf.commander.send_hover_setpoint(0, 0, 0, height)
+        time.sleep(0.1)
+
 
 def land(cf, curr):
     z = curr[2]
