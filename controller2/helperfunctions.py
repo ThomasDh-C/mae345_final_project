@@ -224,7 +224,6 @@ def closest_detection(detections):
 def detect_book(model, frame, tracking_label, confidence):
     """Detect if there is a book in the frame"""
     image = frame
-    image_height, image_width, _ = image.shape
 
     # create blob from image
     blob = cv2.dnn.blobFromImage(image=image, size=(300, 300), mean=(104, 117, 123), 
