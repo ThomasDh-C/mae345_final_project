@@ -4,7 +4,7 @@ def red_filter(frame):
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     #      h s v
     llb = (0,2,0)
-    ulb = (25,255,255)
+    ulb = (27,255,255)
     lb = (120, 3, 0)
     ub = (180, 255, 255)
 
@@ -15,7 +15,7 @@ def red_filter(frame):
     return res
 
 
-frame = cv2.imread('wheresthered_problematic.png')
+frame = cv2.imread('filtered_test_frame.png')
 while(True):
     blurred = cv2.GaussianBlur(frame,(7,7),0)
     # dst = cv2.fastNlMeansDenoisingColored(frame,None,7,7,7,21) 
@@ -26,7 +26,7 @@ while(True):
 
     hsv_frame_gauss = red_filter(blurred)
     # hsv_frame_denoise = red_filter(dst)
-    orig_res = red_filter(frame)
+    # orig_res = red_filter(frame)
 
     cv2.imshow('hsv_frame_gauss',hsv_frame_gauss)
     # cv2.imshow('hsv_frame_denoise', hsv_frame_denoise)

@@ -73,10 +73,10 @@ def red_filter(frame):
     blurred = cv2.GaussianBlur(frame,(7,7),0)
     hsv_frame = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
     #      h    s    v
-    llb = (0,   3,   0)
+    llb = (-1,   1,   0)
     ulb = (20,  40,  255)
-    lb =  (120, 3,   0)
-    ub =  (180, 255, 255)
+    lb =  (120, 1,   0)
+    ub =  (181, 255, 255)
 
     lowreds = cv2.inRange(hsv_frame, llb, ulb)
     highreds = cv2.inRange(hsv_frame, lb, ub)
@@ -201,6 +201,9 @@ else:
                 cv2.imshow('frame', frame)
                 cv2.imshow('filtered_frame', red_filter(frame))
                 
+                if cv2.waitKey(1) & 0xFF == ord('t'):
+                    cv2.imwrite('filtered_test_frame.png', frame)
+
                 if cv2.waitKey(1) & 0xFF == ord('p'):
                     cv2.imwrite('original_frame.png', frame)
                     cv2.imwrite('red_filtered_frame.png', red_filter(frame))

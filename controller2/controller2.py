@@ -30,17 +30,17 @@ if check_crazyflie_available():
             print("I think my y-coordinate is: ", get_starting_y(frame))
             print("starting relative move...")
             ####
-            curr = relative_move(cf, curr, [2.59,0,0], .3)
+            curr = relative_move(scf, curr, [2.59,0,0], .3)
             ####
             print("done with first relative move")
             print("Position after first relative move: ", curr)
             print("starting second relative move...")
             ####
-            curr = relative_move(cf, curr, [0,0,0.75], .1)
+            curr = relative_move(scf, curr, [0,0,0.75], .1)
             print("starting third relative move...")
-            curr = relative_move(cf, curr, [0.6,0,0], .1)
+            curr = relative_move(scf, curr, [0.6,0,0], .1)
             print("starting fourth relative move...")
-            curr = relative_move(cf, curr, [0.6,0,0], .1)
+            curr = relative_move(scf, curr, [0.6,0,0], .1)
             land(cf, curr)
 
     print("Touchdown")

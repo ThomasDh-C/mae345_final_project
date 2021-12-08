@@ -11,6 +11,9 @@ import numpy as np
 ## Some helper functions:
 ## -----------------------------------------------------------------------------------------
 
+TABLE_HEIGHT_METERS = 0.72
+SUDDEN_JUMP_METERS = 0.4
+
 def check_crazyflie_available():
     """Inits crazyflie drivers, finds local crazflies, 
     prints names and returns True if they exist
@@ -64,6 +67,20 @@ def position_estimate(scf):
             
     return x, y, z
 
+def z_estimate(scf):
+    """Get the z coordinate estimate
+    """
+    # need to tune value of period_in_ms, originally 500
+    log_config = LogConfig(name='Kalman Variance', period_in_ms=10)
+    log_config.add_variable('kalman.varPZ', 'float')
+
+    with SyncLogger(scf, log_config) as logger:
+        for log_entry in logger:
+            data = log_entry[1]
+            z = data['kalman.varPZ']
+    return z
+
+
 def set_pid_controller(cf):
     """Reset PID controller and Kalman position estimate
     """
@@ -75,8 +92,9 @@ def set_pid_controller(cf):
     time.sleep(2)
 
 
-def move_to_setpoint(cf, start, end, v):
+def move_to_setpoint(scf, start, end, v):
 
+    cf = scf.cf
     # move along x,y
     z_start, z_end = start[2], end[2]
     end[2] = start[2]
@@ -88,6 +106,12 @@ def move_to_setpoint(cf, start, end, v):
     if start != end:
         for step_idx in range(1,steps+1):
             temp_pos = np.array(start) + step*step_idx
+            z_est = z_estimate(scf)
+            if z_start - z_est > SUDDEN_JUMP_METERS:
+                    start[2] -= TABLE_HEIGHT_METERS
+                    end[2] -= TABLE_HEIGHT_METERS
+                    z_start -= TABLE_HEIGHT_METERS
+                    z_end -= TABLE_HEIGHT_METERS
             cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
             time.sleep(t)
     # cf.commander.send_stop_setpoint()
@@ -136,9 +160,9 @@ def land(cf, curr):
         cf.commander.send_stop_setpoint()
         time.sleep(0.1)
 
-def relative_move(cf, start, dx, v):
+def relative_move(scf, start, dx, v):
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
-    return move_to_setpoint(cf, start, end, v)
+    return move_to_setpoint(scf, start, end, v)
 
 
 
@@ -195,6 +219,11 @@ def check_contours(frame):
         return True
     else:
         return False
+        
+def collision_time(contour):
+    """Given a contour finds time to collision"""
+    
+    
 
 def detection_center(detection):
     """Computes the center x, y coordinates of the book"""
@@ -221,8 +250,8 @@ def closest_detection(detections):
             champ = detect_vec
     return champ_detection
 
-def detect_book(model, frame, tracking_label, confidence):
-    """Detect if there is a book in the frame"""
+def detect_book(model, frame, confidence, COLORS, class_names):
+    """Detect all books in the frame"""
     image = frame
 
     # create blob from image
@@ -232,17 +261,29 @@ def detect_book(model, frame, tracking_label, confidence):
     # forward propagate image
     model.setInput(blob)
     detections = model.forward()
-
+    image_height, image_width, _ = image.shape
+    
     # select detections that match selected class label
-    matching_detections = [d for d in detections[0, 0] if d[1] == tracking_label]
+    for detection in detections[0, 0, :, :]:
+        if detection[2] > confidence:
+            # get the class id
+            class_id = detection[1]
+            # map the class id to the class
+            class_name = class_names[int(class_id)-1]
+            color = COLORS[int(class_id)]
+            # get the bounding box coordinates
+            box_x = detection[3] * image_width
+            box_y = detection[4] * image_height
+            # get the bounding box width and height
+            box_width = detection[5] * image_width
+            box_height = detection[6] * image_height
+            # draw a rectangle around each detected object
+            cv2.rectangle(image, (int(box_x), int(box_y)), (int(box_width), int(box_height)), color, thickness=1)
+            # put the FPS text on top of the frame
+            text = class_name + ' ' + '%.2f' % (detection[2])
+            cv2.putText(image, text, (int(box_x), int(box_y - 5)), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, color, 1)
 
-    # select confident detections
-    confident_detections = [d for d in matching_detections if d[2] > confidence]
-
-    # get detection closest to center of field of view and draw it
-    det = closest_detection(confident_detections)
-
-    return det
+    cv2.imshow('image', image)
 
 def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
     """Controller for moving to book once detected"""
