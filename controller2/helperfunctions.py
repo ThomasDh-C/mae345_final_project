@@ -72,12 +72,16 @@ def z_estimate(scf):
     """
     # need to tune value of period_in_ms, originally 500
     log_config = LogConfig(name='Kalman Variance', period_in_ms=10)
-    log_config.add_variable('kalman.varPZ', 'float')
+    log_config.add_variable('stateEstimate.z', 'float')
+    # log_config.add_variable('kalman.varPZ', 'float')
 
     with SyncLogger(scf, log_config) as logger:
         for log_entry in logger:
             data = log_entry[1]
-            z = data['kalman.varPZ']
+            z = data['stateEstimate.z']
+            break
+    
+    print("Z estimate: ", z)
     return z
 
 
@@ -106,15 +110,20 @@ def move_to_setpoint(scf, start, end, v):
     if start != end:
         for step_idx in range(1,steps+1):
             temp_pos = np.array(start) + step*step_idx
-            z_est = z_estimate(scf)
-            if z_start - z_est > SUDDEN_JUMP_METERS:
-                    start[2] -= TABLE_HEIGHT_METERS
-                    end[2] -= TABLE_HEIGHT_METERS
-                    z_start -= TABLE_HEIGHT_METERS
-                    z_end -= TABLE_HEIGHT_METERS
             cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
-            time.sleep(t)
-    # cf.commander.send_stop_setpoint()
+            start_time = time.time()
+            while time.time() < start_time + t:
+                z_est = z_estimate(scf)
+                if z_start - z_est > SUDDEN_JUMP_METERS:
+                        print("Got to the table!")
+                        start[2] -= TABLE_HEIGHT_METERS
+                        end[2] -= TABLE_HEIGHT_METERS
+                        z_start -= TABLE_HEIGHT_METERS
+                        z_end -= TABLE_HEIGHT_METERS
+                        step[2] -= TABLE_HEIGHT_METERS
+                        cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+                        break
+    
     print("in move_to_setpoint: done translating")
     time.sleep(0.2)
     print("in move_to_setpoint: about to move up")
