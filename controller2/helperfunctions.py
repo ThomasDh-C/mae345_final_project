@@ -107,7 +107,7 @@ def move_to_setpoint(scf, start, end, v):
     dist = np.linalg.norm(grad)
     step = grad/steps
     t = dist/v/steps
-    # if start != end:
+
     for step_idx in range(1,steps+1):
         temp_pos = np.array(start) + step*step_idx
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
@@ -230,9 +230,35 @@ def check_contours(frame):
     else:
         return False
         
-def collision_time(contour):
+def farthestObstacle(frame1, frame2):
     """Given a contour finds time to collision"""
-    
+    flow = cv2.calcOpticalFlowFarneback(frame1, frame2, None, 0.5, 4, 15, 4, 7, 1.5, 0)
+    frame2 = frame1
+    red = cv2.red_filter(frame1)
+    cont = cv2.findContours(red1, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    newFlow = []
+    contours = check_contours(red)
+    for i in range len(contours):
+        for j in range len(contours[0]):
+            if contours[i][j] == 1:
+               newFlow[i][j] = np.linalg.norm(flow[i][j])
+            else:
+                newFlow[i][j] = 0
+     sum = 0
+     count = 0
+     avgFlows = []
+     for contour in len(cont):
+         for i in range len(newFlow):
+            for j in range len(newFlow[0]):
+                if (newFlow[i][j]=!0 && (newFlow[i][j+1]|newFlow[i+1][j]|newFlow[i-1][j]|newFlow[i][j-1]!=0))
+                    sum = newFlow[i][j] + sum
+                    count = count + 1
+         avgFlows[contour] = sum/count  
+      farthest = avgFlows.index(min(avgFlows))
+
+    # Return direction vector
+      
+ 
     
 
 def detection_center(detection):
