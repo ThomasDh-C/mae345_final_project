@@ -4,7 +4,8 @@ import time
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 import numpy as np
-from helperfunctions import start_video, detect_book, check_crazyflie_available, key_press, set_pid_controller
+from helperfunctions import time_averaged_frame
+from helperfunctions import start_video, detect_book, check_crazyflie_available, key_press
 
 # load the COCO class names
 with open('Lab9_Supplement/object_detection_classes_coco.txt', 'r') as f:
@@ -30,19 +31,28 @@ if check_crazyflie_available():
         cf = scf.cf
         cap = start_video(camera_number)
 
-        curr = [0,0,0]
-        
-        # with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
-            
-        # Capture frame-by-frame
+        ###
         while True:
             ret, frame = cap.read()
-            if ret:
-                blurred = cv2.GaussianBlur(frame, (3,3), 0)
-                detect_book(model, blurred, confidence, COLORS, class_names)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if ret: 
+                print('data type required: ', frame.dtype)
                 break
+
+
+        curr = [0,0,0]
         
-    print("Touchdown")
+        with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
+                    
+                # Capture frame-by-frame
+                while True:
+                    # ret, frame = cap.read()
+                    ret, frame = time_averaged_frame(cap)
+                    if ret:
+                        blurred = cv2.GaussianBlur(frame, (3,3), 0)
+                        detect_book(model, blurred, confidence, COLORS, class_names)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+                
+        print("Touchdown")
 else: 
     print("DorEye down mayday")

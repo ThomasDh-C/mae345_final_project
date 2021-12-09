@@ -12,7 +12,7 @@ import numpy as np
 ## -----------------------------------------------------------------------------------------
 
 TABLE_HEIGHT_METERS = 0.72
-SUDDEN_JUMP_METERS = 0.4
+SUDDEN_JUMP_METERS = 0.15
 
 def check_crazyflie_available():
     """Inits crazyflie drivers, finds local crazflies, 
@@ -50,34 +50,20 @@ def start_video(camera_number):
     time.sleep(3)
     return cap
 
-def position_estimate(scf):
-    """Kalman estimate of x, y, z position
+def time_averaged_frame(cap):
+    """smooth the picture over three frames
     """
-    log_config = LogConfig(name='Kalman Variance', period_in_ms=500)
-    log_config.add_variable('kalman.varPX', 'float')
-    log_config.add_variable('kalman.varPY', 'float')
-    log_config.add_variable('kalman.varPZ', 'float')
+    successful_frames = 0
+    to_avg = np.ndarray((3, 480, 640, 3), dtype=np.uint32)
+    while successful_frames != 3:
+        ret, frame = cap.read()
+        if ret:
+            to_avg[successful_frames] = frame.astype(np.uint32)
+            successful_frames += 1
+    return True, np.mean(to_avg, axis=0).astype(np.uint8)
 
-    with SyncLogger(scf, log_config) as logger:
-        for log_entry in logger:
-            data = log_entry[1]
-            x = data['kalman.varPX']
-            y = data['kalman.varPY']
-            z = data['kalman.varPZ']
-            
-    return x, y, z
 
-def z_estimate(scf, log_config):
-    """Get the z coordinate estimate
-    """
-    with SyncLogger(scf, log_config) as logger:
-        for log_entry in logger:
-            data = log_entry[1]
-            z = data['stateEstimate.z']
-            break
-    
-    print("Z estimate: ", z)
-    return z
+        
 
 
 def set_pid_controller(cf):
@@ -90,43 +76,61 @@ def set_pid_controller(cf):
     cf.param.set_value('kalman.resetEstimation', '0')
     time.sleep(2)
 
+def log_config_setup():
+    log_config = LogConfig(name='Position Estimate', period_in_ms=100)
+    # log_config.add_variable('stateEstimate.x', 'float')
+    # log_config.add_variable('stateEstimate.y', 'float')
+    log_config.add_variable('stateEstimate.z', 'float')
+    print('log config setup')
+    return log_config
+
+def z_estimate(scf, log_config):
+    """Get the z coordinate estimate
+    """
+    # print('Getting z estimate')
+    log_config2 = LogConfig(name='Kalman Variance', period_in_ms=100)
+    log_config2.add_variable('stateEstimate.z', 'float')
+    with SyncLogger(scf, log_config2) as logger:
+        for log_entry in logger:
+            data = log_entry[1]
+            # x = data['stateEstimate.x']
+            # y = data['stateEstimate.y']
+            z = data['stateEstimate.z']
+            break
+    
+    # print("Z estimate: ", z)
+    return z
 
 def move_to_setpoint(scf, start, end, v, log_config):
-
     cf = scf.cf
+    
     # move along x,y
-    z_start, z_end = start[2], end[2]
-    end[2] = start[2]
+    z_start, z_end = start[2], end[2] # we update both these to - table height if we go over a table
     steps = 30
-    grad = np.array(end) - np.array(start)
-    dist = np.linalg.norm(grad)
-    step = grad/steps
-    t = dist/v/steps
-
+    xy_grad = np.array(end[0:2]) - np.array(start[0:2])
+    xy_dist = np.linalg.norm(xy_grad)
+    xy_step, t = xy_grad/steps, xy_dist/v/steps
+    z_measured_start, table = z_estimate(scf, log_config), False
+    print('about to start xy move')
     for step_idx in range(1,steps+1):
-        temp_pos = np.array(start) + step*step_idx
+        temp_pos = [start[0]+xy_step[0]*step_idx, start[1]+xy_step[1]*step_idx, z_start]
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
 
+        # z_detection
         start_time = time.time()
         while time.time() < start_time + t:
-            time.sleep(t/3)
-            temp_unused = z_estimate(scf, log_config)
-            # continue
-            # z_est = z_estimate(scf)
-            # if z_start - z_est > SUDDEN_JUMP_METERS:
-            #         print("Got to the table!")
-            #         start[2] -= TABLE_HEIGHT_METERS
-            #         end[2] -= TABLE_HEIGHT_METERS
-            #         z_start -= TABLE_HEIGHT_METERS
-            #         z_end -= TABLE_HEIGHT_METERS
-            #         step[2] -= TABLE_HEIGHT_METERS
-            #         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
-            #         break
-
-    print("in move_to_setpoint: done translating")
+            if not table: 
+                z_measurement = z_estimate(scf, log_config)
+                if np.abs(z_measured_start - z_measurement) > SUDDEN_JUMP_METERS:
+                    print('found the table, z_measurement: ', z_measurement)
+                    for _ in range(20):
+                        cf.commander.send_hover_setpoint(0.05, 0, 0, temp_pos[2]-TABLE_HEIGHT_METERS)
+                        time.sleep(0.1)
+                    # cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2]-TABLE_HEIGHT_METERS, 0) #send command immediately
+                    z_start, z_end, table = z_start-TABLE_HEIGHT_METERS, z_end-TABLE_HEIGHT_METERS, True
+            # time.sleep(t/3)
     time.sleep(0.2)
-    print("in move_to_setpoint: about to move up")
-
+    print('about to move in z')
     # move along z
     steps = 10
     t = (z_end-z_start) / v / steps
@@ -137,10 +141,15 @@ def move_to_setpoint(scf, start, end, v, log_config):
         cf.commander.send_hover_setpoint(0, 0, 0, z_end)
         time.sleep(0.1)
 
-    end[2] = z_end
+    end[2] = z_end # if go over table have to update this
     print("in move_to_setpoint: returning")
     return end
-    
+
+def relative_move(scf, start, dx, v, log_config):
+    end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
+    return move_to_setpoint(scf, start, end, v, log_config)
+
+
 def takeoff(cf, height):
     # Ascend:
     for y in range(5):
@@ -168,9 +177,7 @@ def land(cf, curr):
         cf.commander.send_stop_setpoint()
         time.sleep(0.1)
 
-def relative_move(scf, start, dx, v, log_config):
-    end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
-    return move_to_setpoint(scf, start, end, v, log_config)
+
 
 
 
@@ -227,36 +234,49 @@ def check_contours(frame):
         return True
     else:
         return False
+
+def check_contours_matrix(frame, cont):
+    
+
+    return
+
         
-def farthestObstacle(frame1, frame2):
+def furthestObstacle(frame1, frame2, DX):
     """Given a contour finds time to collision"""
     flow = cv2.calcOpticalFlowFarneback(frame1, frame2, None, 0.5, 4, 15, 4, 7, 1.5, 0)
     frame2 = frame1
     red = cv2.red_filter(frame1)
-    cont = cv2.findContours(red1, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    cont = cv2.findContours(red, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     newFlow = []
-    contours = check_contours(red)
-    for i in range len(contours):
-        for j in range len(contours[0]):
+    contours = check_contours_matrix(red, cont)
+    for i in range (len(contours)):
+        for j in range (len(contours[0])):
             if contours[i][j] == 1:
                newFlow[i][j] = np.linalg.norm(flow[i][j])
             else:
                 newFlow[i][j] = 0
-     sum = 0
-     count = 0
-     avgFlows = []
-     for contour in len(cont):
-         for i in range len(newFlow):
-            for j in range len(newFlow[0]):
-                if (newFlow[i][j]=!0 && (newFlow[i][j+1]|newFlow[i+1][j]|newFlow[i-1][j]|newFlow[i][j-1]!=0))
-                    sum = newFlow[i][j] + sum
-                    count = count + 1
-         avgFlows[contour] = sum/count  
-      farthest = avgFlows.index(min(avgFlows))
+    sum = 0
+    count = 0
+    avgFlows = []
+    for contour in len(cont):
+        for i in range (len(newFlow)):
+           for j in range (len(newFlow[0])):
+                # URGENT: what exactly should the logic here be?
+                # if newFlow[i][j] != 0 and (newFlow[i][j+1]|newFlow[i+1][j]|newFlow[i-1][j]|newFlow[i][j-1]!=0):
+                # This is Jacob's guess, need to confirm with Bella:
+                if newFlow[i][j] != 0 and (newFlow[i][j+1] != 0 or newFlow[i+1][j] != 0 or newFlow[i-1][j] != 0 or newFlow[i][j-1] != 0):
+                    sum += newFlow[i][j]
+                    count += 1
+        avgFlows[contour] = sum/count
+        farthest = avgFlows.index(min(avgFlows))
 
-    # Return direction vector
-      
- 
+    # Return direction to go towards (goes right if contour over half of the frame)
+    x,y,w,h = cv2.boundingRect(farthest)
+    FRAME_SIZE_HALVED = 320
+    if x > FRAME_SIZE_HALVED:
+        return [0, -DX, 0]
+    else:
+        return [0, DX, 0]
     
 
 def detection_center(detection):

@@ -51,6 +51,7 @@ if check_crazyflie_available():
             # TODO: constantly in the loop update distance_to_closest
 
             while not reached_table:
+
                 if not shit_in_front:
                     curr = relative_move(scf, curr, [DX, 0, 0], DEFAULT_VELOCITY)
                     continue
