@@ -4,7 +4,7 @@ from pynput import keyboard
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press, relative_move, land, takeoff
-
+from cflib.crazyflie.log import LogConfig
 from find_white import get_starting_y
 
 group_number = 12
@@ -21,26 +21,29 @@ if check_crazyflie_available():
         curr = [0,0,0]
         
         with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
+            log_config = LogConfig(name='Kalman Variance', period_in_ms=100)
+            log_config.add_variable('stateEstimate.z', 'float')
+
             # fly fly away
             curr = takeoff(cf, .4)
             ####
             print("takeoff successful")
             print("Current Position: ", curr)
-            ret, frame = cap.read()
-            print("I think my y-coordinate is: ", get_starting_y(frame))
+            # ret, frame = cap.read()
+            # print("I think my y-coordinate is: ", get_starting_y(frame))
             print("starting relative move...")
             ####
-            curr = relative_move(scf, curr, [2.59,0,0], .3)
+            curr = relative_move(scf, curr, [2.59,0,0], .3, log_config)
             ####
             print("done with first relative move")
             print("Position after first relative move: ", curr)
             print("starting second relative move...")
             ####
-            curr = relative_move(scf, curr, [0,0,0.75], .1)
+            curr = relative_move(scf, curr, [0,0,0.75], .1, log_config)
             print("starting third relative move...")
-            curr = relative_move(scf, curr, [0.6,0,0], .1)
+            curr = relative_move(scf, curr, [0.6,0,0], .1, log_config)
             print("starting fourth relative move...")
-            curr = relative_move(scf, curr, [0.6,0,0], .1)
+            curr = relative_move(scf, curr, [0.6,0,0], .1, log_config)
             land(cf, curr)
 
     print("Touchdown")

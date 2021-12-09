@@ -67,14 +67,9 @@ def position_estimate(scf):
             
     return x, y, z
 
-def z_estimate(scf):
+def z_estimate(scf, log_config):
     """Get the z coordinate estimate
     """
-    # need to tune value of period_in_ms, originally 500
-    log_config = LogConfig(name='Kalman Variance', period_in_ms=10)
-    log_config.add_variable('stateEstimate.z', 'float')
-    # log_config.add_variable('kalman.varPZ', 'float')
-
     with SyncLogger(scf, log_config) as logger:
         for log_entry in logger:
             data = log_entry[1]
@@ -96,7 +91,7 @@ def set_pid_controller(cf):
     time.sleep(2)
 
 
-def move_to_setpoint(scf, start, end, v):
+def move_to_setpoint(scf, start, end, v, log_config):
 
     cf = scf.cf
     # move along x,y
@@ -111,9 +106,12 @@ def move_to_setpoint(scf, start, end, v):
     for step_idx in range(1,steps+1):
         temp_pos = np.array(start) + step*step_idx
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+
         start_time = time.time()
         while time.time() < start_time + t:
-            continue
+            time.sleep(t/3)
+            temp_unused = z_estimate(scf, log_config)
+            # continue
             # z_est = z_estimate(scf)
             # if z_start - z_est > SUDDEN_JUMP_METERS:
             #         print("Got to the table!")
@@ -170,9 +168,9 @@ def land(cf, curr):
         cf.commander.send_stop_setpoint()
         time.sleep(0.1)
 
-def relative_move(scf, start, dx, v):
+def relative_move(scf, start, dx, v, log_config):
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
-    return move_to_setpoint(scf, start, end, v)
+    return move_to_setpoint(scf, start, end, v, log_config)
 
 
 
