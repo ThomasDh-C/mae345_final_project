@@ -229,7 +229,7 @@ def check_contours(frame):
     else:
         return False
         
-def collision_time(frame1, frame2):
+def farthestObstacle(frame1, frame2):
     """Given a contour finds time to collision"""
     flow = cv2.calcOpticalFlowFarneback(frame1, frame2, None, 0.5, 4, 15, 4, 7, 1.5, 0)
     frame2 = frame1
@@ -237,10 +237,10 @@ def collision_time(frame1, frame2):
     cont = cv2.findContours(red1, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     newFlow = []
     contours = check_contours(red)
-    for i in range len(flow):
-        for j in range len(flow[0]):
+    for i in range len(contours):
+        for j in range len(contours[0]):
             if contours[i][j] == 1:
-               newFlow[i][j] = flow[i][j]
+               newFlow[i][j] = np.linalg.norm(flow[i][j])
             else:
                 newFlow[i][j] = 0
      sum = 0
@@ -254,10 +254,8 @@ def collision_time(frame1, frame2):
                     count = count + 1
          avgFlows[contour] = sum/count  
       farthest = avgFlows.index(min(avgFlows))
-      return 
-    # Set position
-    cf.commander.send_position_setpoint(x_command, y_command, 0.5, 0)
-    return False, x_command, y_command
+
+    # Return direction vector
       
  
     
