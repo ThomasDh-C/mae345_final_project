@@ -107,23 +107,24 @@ def move_to_setpoint(scf, start, end, v):
     dist = np.linalg.norm(grad)
     step = grad/steps
     t = dist/v/steps
-    if start != end:
-        for step_idx in range(1,steps+1):
-            temp_pos = np.array(start) + step*step_idx
-            cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
-            start_time = time.time()
-            while time.time() < start_time + t:
-                z_est = z_estimate(scf)
-                if z_start - z_est > SUDDEN_JUMP_METERS:
-                        print("Got to the table!")
-                        start[2] -= TABLE_HEIGHT_METERS
-                        end[2] -= TABLE_HEIGHT_METERS
-                        z_start -= TABLE_HEIGHT_METERS
-                        z_end -= TABLE_HEIGHT_METERS
-                        step[2] -= TABLE_HEIGHT_METERS
-                        cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
-                        break
-    
+    # if start != end:
+    for step_idx in range(1,steps+1):
+        temp_pos = np.array(start) + step*step_idx
+        cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+        start_time = time.time()
+        while time.time() < start_time + t:
+            continue
+            # z_est = z_estimate(scf)
+            # if z_start - z_est > SUDDEN_JUMP_METERS:
+            #         print("Got to the table!")
+            #         start[2] -= TABLE_HEIGHT_METERS
+            #         end[2] -= TABLE_HEIGHT_METERS
+            #         z_start -= TABLE_HEIGHT_METERS
+            #         z_end -= TABLE_HEIGHT_METERS
+            #         step[2] -= TABLE_HEIGHT_METERS
+            #         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+            #         break
+
     print("in move_to_setpoint: done translating")
     time.sleep(0.2)
     print("in move_to_setpoint: about to move up")
