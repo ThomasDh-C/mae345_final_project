@@ -208,11 +208,13 @@ def land(cf, curr):
 def red_filter(frame):
     """Turns camera frame into bool array of red objects
     """
-    blurred = cv2.GaussianBlur(frame,(7,7),0)
+    blurred_input = cv2.GaussianBlur(frame,(7,7),0)
+    denoised_blurred = cv2.fastNlMeansDenoisingColored(blurred_input,None,10,10,7,21)
+    blurred = cv2.GaussianBlur(denoised_blurred,(7,7),0)
     hsv_frame = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
     #      h    s    v
     llb = (0,   3,   0)
-    ulb = (25,  255, 255)
+    ulb = (28,  255, 255)
     lb =  (120, 3,   0)
     ub =  (180, 255, 255)
 

@@ -25,7 +25,7 @@ frame3 = cv2.fastNlMeansDenoisingColored(frame2,None,10,10,7,21)
 h = cv2.cvtColor(frame3, cv2.COLOR_BGR2HSV)[:,:,0]
 while(True):
     cv2.imshow('frame',frame)  
-    cv2.imshow('h',h)
+    cv2.imshow('h',frame3)
     cv2.imshow('red_filter', red_filter(frame3))
 
     # Hit q to quit.
