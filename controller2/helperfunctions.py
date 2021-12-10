@@ -13,7 +13,7 @@ import numpy as np
 
 TABLE_HEIGHT_METERS = 0.72
 SUDDEN_JUMP_METERS = 0.15
-MIN_CONTOUR_SIZE = 500.0
+MIN_CONTOUR_SIZE = 300.0
 
 def check_crazyflie_available():
     """Inits crazyflie drivers, finds local crazflies, 
@@ -236,7 +236,26 @@ def too_close(large_contours):
             to_ret.append(c)
     return to_ret
 
-        
+def center_vertical_obs_bottom(red_frame, CLEAR_CENTER):
+    """Return the number of pixels to the bottom of the frame that the closest contour occupies
+    """
+    # crop into frame, compute contours, get bounding box around large contours, return
+    current_frame_height = red_frame.shape[0]
+    red1 = red_frame[current_frame_height // 2:, :]
+    contours, _ = cv2.findContours(red_frame, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    large_contours = [cont for cont in contours if cv2.contourArea(cont) > MIN_CONTOUR_SIZE]
+    bottom_y = []
+    for cont in large_contours:
+        x,y,w,h = cv2.boundingRect(cont)
+        c_x = (x+w/2)-640/2                     # from center bottom
+        if np.norm(c_x) < CLEAR_CENTER:
+            bottom_y.append(480-(y+h))
+    return min(bottom_y)
+
+# def rotate_to(scf, current_angle, new_angle):
+#     angle 
+#     return angle
+
 def furthest_obstacle(frame1, frame2, dx):
     """Given a contour returns a next step that should be taken"""
     # ^^ clarification q from jacob: not actually given contours, but frames right?
@@ -334,6 +353,9 @@ def detect_book(model, frame, confidence, COLORS, class_names):
             cv2.putText(image, text, (int(box_x), int(box_y - 5)), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, color, 1)
 
     cv2.imshow('image', image)
+
+def find_book(frame):
+    return
 
 def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
     """Controller for moving to book once detected"""

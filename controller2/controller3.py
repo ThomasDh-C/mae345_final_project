@@ -6,9 +6,9 @@ from pynput import keyboard
 
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from controller2.helperfunctions import red_filter, time_averaged_frame
+from helperfunctions import red_filter, time_averaged_frame
 from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press, relative_move, land, takeoff, move_to_setpoint
-from helperfunctions import look_center, look_left, look_right, time_averaged_frame
+from helperfunctions import look_center, look_left, look_right, time_averaged_frame, center_vertical_obs_bottom, find_book
 
 # important constants
 
@@ -33,10 +33,6 @@ CLEAR_CENTER = 100 #pixel column clear to end needed
 curr = [0, 0, 0]
 curr_angle = 0 # -90 = left, 90 = right
 reached_table = False
-
-
-
-
 
 if check_crazyflie_available():
     with SyncCrazyflie(f'radio://0/{group_number}/2M', cf=Crazyflie(rw_cache='./cache')) as scf:
@@ -80,12 +76,14 @@ if check_crazyflie_available():
                 # peek left and right, determine which way is safe to move in
                 # move to best position in that direction
                 else:
-                    curr_angle = rotate_to(scf, curr_angle, -90)
+                    # curr_angle = rotate_to(scf, curr_angle, -90)
+                    cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], -90)
                     _, frame = time_averaged_frame(cap)
                     red = red_filter(frame) # super accomodating
                     dist_left = center_vertical_obs_bottom(red, CLEAR_CENTER)
                     
-                    curr_angle = rotate_to(scf, curr_angle, 90)
+                    # curr_angle = rotate_to(scf, curr_angle, 90)
+                    cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 90)
                     _, frame = time_averaged_frame(cap)
                     red = red_filter(frame) # super accomodating
                     dist_right = center_vertical_obs_bottom(red, CLEAR_CENTER)
@@ -112,14 +110,16 @@ if check_crazyflie_available():
                         curr = relative_move(scf, curr, [0, DY*pos_neg, 0], DEFAULT_VELOCITY)
 
                         # forwards
-                        curr_angle = rotate_to(scf, curr_angle, 0)
+                        # curr_angle = rotate_to(scf, curr_angle, 0)
+                        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
                         _, frame = time_averaged_frame(cap)
                         red = red_filter(frame) # super accomodating
                         dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER)
                         dist_to_obs_center.append((dist_center_obs, curr))
 
                         # update side_distance
-                        curr_angle = rotate_to(scf, curr_angle, 90*pos_neg*-1)
+                        # curr_angle = rotate_to(scf, curr_angle, 90*pos_neg*-1)
+                        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 90*pos_neg*-1)
                         _, frame = time_averaged_frame(cap)
                         red = red_filter(frame) # super accomodating
                         side_distance = center_vertical_obs_bottom(red, CLEAR_CENTER)
@@ -127,7 +127,7 @@ if check_crazyflie_available():
                     # move to ideal position again and rotate forward
                     max_dist_index = np.argmax([pos[0] for pos in dist_to_obs_center])
                     curr = move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], DEFAULT_VELOCITY)
-                    curr_angle = rotate_to(scf, curr_angle, 0)
+                    cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
 
                     # if none of the positions were good, will pick best position 
                     # fail again to move forward and will search in other direction
@@ -148,9 +148,10 @@ if check_crazyflie_available():
             in_left_half = (curr[1] - WIDTH/2) > 0
             go_left = not in_left_half
             while True:
-                _, frame = time_averaged_frame(cap)
+                ret, frame = time_averaged_frame(cap)
                 # left of frame is 0 line
-                ret, book_center_px, book_center_py = find_book(frame)
+                # TODO: find_book code
+                book_center_px, book_center_py = find_book(frame)
                 if ret:
                     if np.norm(book_center_px-320) < BOOK_MARGIN_PX:
                         break # Success!!!
