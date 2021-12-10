@@ -70,13 +70,17 @@ def findGreatestContour(contours):
     return largest_area, largest_contour_index
 
 def red_filter(frame):
+    """Turns camera frame into bool array of red objects
+    """
+    # blurred_input = cv2.GaussianBlur(frame,(7,7),0)
+    # denoised_blurred = cv2.fastNlMeansDenoisingColored(blurred_input,None,10,10,7,21)
     blurred = cv2.GaussianBlur(frame,(7,7),0)
     hsv_frame = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
     #      h    s    v
-    llb = (-1,   1,   0)
-    ulb = (20,  40,  255)
-    lb =  (120, 1,   0)
-    ub =  (181, 255, 255)
+    llb = (0,   3,   0)
+    ulb = (28,  255, 255)
+    lb =  (120, 3,   0)
+    ub =  (180, 255, 255)
 
     lowreds = cv2.inRange(hsv_frame, llb, ulb)
     highreds = cv2.inRange(hsv_frame, lb, ub)
@@ -84,6 +88,17 @@ def red_filter(frame):
 
     return res
 
+def time_averaged_frame(cap):
+    """smooth the picture over three frames
+    """
+    successful_frames = 0
+    to_avg = np.ndarray((3, 480, 640, 3), dtype=np.uint32)
+    while successful_frames != 3:
+        ret, frame = cap.read()
+        if ret:
+            to_avg[successful_frames] = frame.astype(np.uint32)
+            successful_frames += 1
+    return True, np.mean(to_avg, axis=0).astype(np.uint8)
 
 def check_contours(frame):
     print('Checking image:')
@@ -193,7 +208,8 @@ else:
 
         while(cap.isOpened()):
             # Capture frame-by-frame
-            ret, frame = cap.read()
+            ret, frame = time_averaged_frame(cap)
+            # ret, frame = cap.read()
             elapsed = time.time() - t
             
             if ret and elapsed > 5.0:

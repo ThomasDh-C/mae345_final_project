@@ -117,8 +117,22 @@ def pos_estimate(scf):
     
     return [x, y, z]
 
+def angle_estimate(scf):
+    """Get the x coordinate estimate
+    """
+    log_config2 = LogConfig(name='Kalman Variance', period_in_ms=100)
+    log_config2.add_variable('stateEstimate.yaw', 'float')
 
-def move_to_setpoint(scf, start, end, v):
+    with SyncLogger(scf, log_config2) as logger:
+        for log_entry in logger:
+            data = log_entry[1]
+            angle = data['stateEstimate.yaw']
+            break
+    
+    return angle
+
+
+def move_to_setpoint(scf, start, end, v, big_move):
     cf = scf.cf
     
     # move along x,y
@@ -128,54 +142,41 @@ def move_to_setpoint(scf, start, end, v):
     xy_dist = np.linalg.norm(xy_grad)
     xy_step, t = xy_grad/steps, xy_dist/v/steps
     z_measured_start, table = z_estimate(scf), False
-    print('about to start xy move')
+    # print('about to start xy move')
     for step_idx in range(1,steps+1):
         temp_pos = [start[0]+xy_step[0]*step_idx, start[1]+xy_step[1]*step_idx, z_start]
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
-
-        # TODO: can get rid of z detection since it's impossible to land on table?
-        # z_detection
-        start_time = time.time()
-        while time.time() < start_time + t:
-            if not table: 
-                z_measurement = z_estimate(scf)
-                if np.abs(z_measured_start - z_measurement) > SUDDEN_JUMP_METERS:
-                    print('found the table, z_measurement: ', z_measurement)
-                    for _ in range(20):
-                        cf.commander.send_hover_setpoint(0.05, 0, 0, temp_pos[2]-TABLE_HEIGHT_METERS)
-                        time.sleep(0.1)
-                    # cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2]-TABLE_HEIGHT_METERS, 0) #send command immediately
-                    z_start, z_end, table = z_start-TABLE_HEIGHT_METERS, z_end-TABLE_HEIGHT_METERS, True
-            # time.sleep(t/3)
+        time.sleep(t)
     time.sleep(0.2)
-    print('about to move in z')
+    # print('about to move in z')
     # move along z
     steps = 10
-    t = (z_end-z_start) / v / steps
-    for idx in range(1, steps+1):
-        cf.commander.send_hover_setpoint(0, 0, 0, z_start + (idx/steps)*(z_end-z_start))
-        time.sleep(t)
-    for _ in range(20):
+    if z_start != z_end:
+        t = (z_end-z_start) / v / steps
+        for idx in range(1, steps+1):
+            cf.commander.send_hover_setpoint(0, 0, 0, z_start + (idx/steps)*(z_end-z_start))
+            time.sleep(np.linalg.norm(t))
+    # (10,20)[big_move]
+    for _ in range(10):
         cf.commander.send_hover_setpoint(0, 0, 0, z_end)
         time.sleep(0.1)
 
     # end[2] = z_end # if go over table have to update this
-    print("in move_to_setpoint: returning")
+    # print("in move_to_setpoint: returning")
     return pos_estimate(scf)
 
-def relative_move(scf, start, dx, v):
+def relative_move(scf, start, dx, v, big_move):
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
-    return move_to_setpoint(scf, start, end, v)
+    return move_to_setpoint(scf, start, end, v, big_move)
 
-def look_left(cf, start):
-    cf.commander.send_position_setpoint(start[0], start[1], start[2], 90)
+# def look_left(cf, start):
+#     cf.commander.send_position_setpoint(start[0], start[1], start[2], 90)
 
-def look_right(cf, start):
-    cf.commander.send_position_setpoint(start[0], start[1], start[2], -90)
+# def look_right(cf, start):
+#     cf.commander.send_position_setpoint(start[0], start[1], start[2], -90)
 
-def look_center(cf, start):
-    cf.commander.send_position_setpoint(start[0], start[1], start[2], 0)
-
+# def look_center(cf, start):
+#     cf.commander.send_position_setpoint(start[0], start[1], start[2], 0)
 
 def takeoff(cf, height):
     # Ascend:
@@ -208,9 +209,9 @@ def land(cf, curr):
 def red_filter(frame):
     """Turns camera frame into bool array of red objects
     """
-    blurred_input = cv2.GaussianBlur(frame,(7,7),0)
-    denoised_blurred = cv2.fastNlMeansDenoisingColored(blurred_input,None,10,10,7,21)
-    blurred = cv2.GaussianBlur(denoised_blurred,(7,7),0)
+    # blurred_input = cv2.GaussianBlur(frame,(7,7),0)
+    # denoised_blurred = cv2.fastNlMeansDenoisingColored(blurred_input,None,10,10,7,21)
+    blurred = cv2.GaussianBlur(frame,(7,7),0)
     hsv_frame = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
     #      h    s    v
     llb = (0,   3,   0)
@@ -221,6 +222,7 @@ def red_filter(frame):
     lowreds = cv2.inRange(hsv_frame, llb, ulb)
     highreds = cv2.inRange(hsv_frame, lb, ub)
     res = cv2.bitwise_or(lowreds, highreds)
+
 
     return res
 
@@ -250,13 +252,24 @@ def center_vertical_obs_bottom(red_frame, CLEAR_CENTER):
     for cont in large_contours:
         x,y,w,h = cv2.boundingRect(cont)
         c_x = (x+w/2)-640/2                     # from center bottom
-        if np.norm(c_x) < CLEAR_CENTER:
+        if np.linalg.norm(c_x) < CLEAR_CENTER:
             bottom_y.append(480-(y+h))
+    if len(bottom_y) == 0:
+        return 480 # max height of frame
     return min(bottom_y)
 
-# def rotate_to(scf, current_angle, new_angle):
-#     angle 
-#     return angle
+def rotate_to(scf, curr, current_angle, new_angle):
+    # send_hover_setpoint(self, vx, vy, yawrate, zdistance)
+    # pos_neg = new_angle-current_angle
+    # while angle_estimate(scf)
+    cf = scf.cf
+    for i in np.linspace(current_angle, new_angle, 100):
+        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], i)
+        time.sleep(0.02)
+    for _ in range(20):
+        cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+        time.sleep(0.1)
+    return angle_estimate(scf)
 
 def furthest_obstacle(frame1, frame2, dx):
     """Given a contour returns a next step that should be taken"""
@@ -395,7 +408,7 @@ def key_press(key, cf, cap, curr):
         return False
 
     # photo operations
-    ret, frame = cap.read()
+    ret, frame = time_averaged_frame(cap)
     if ret and key=='t':
         cv2.imshow('frame', red_filter(frame))
     if ret and key=='p':
