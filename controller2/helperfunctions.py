@@ -81,6 +81,7 @@ def log_config_setup():
     print('log config setup')
     return log_config
 
+# TODO: remove this function
 def z_estimate(scf):
     """Get the z coordinate estimate
     """
@@ -113,6 +114,7 @@ def move_to_setpoint(scf, start, end, v):
         temp_pos = [start[0]+xy_step[0]*step_idx, start[1]+xy_step[1]*step_idx, z_start]
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
 
+        # TODO: can get rid of z detection since it's impossible to land on table?
         # z_detection
         start_time = time.time()
         while time.time() < start_time + t:
@@ -192,9 +194,25 @@ def red_filter(frame):
 
     return res
 
+def too_close(large_contours):
+    """Return a list of contours that are too close to Dori
+    """
+    # A contour is too close if its area is too large AND it stretches from the top to the bottom of the frame.
+    # If a large contour doesn't go from top to bottom, it is almost certainly just a cluster of far-away pipes
+    to_ret = []
+    for c in large_contours:
+        _, _, _, h = cv2.boundingRect(c)
+        # choose some large (but not = 480px) determiner
+        # TODO: tune this value
+        if h >= 460:
+            to_ret.append(c)
+    return to_ret
+
         
 def furthest_obstacle(frame1, frame2, dx):
     """Given a contour returns a next step that should be taken"""
+    # ^^ clarification q from jacob: not actually given contours, but frames right?
+
     # find flow = only accepts 1 channel images
     # based on https://github.com/ferreirafabio/video2tfrecord/blob/master/video2tfrecord.py
     grey_frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
@@ -304,6 +322,7 @@ def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
     if box_x>ok_region:
         y_command-=dx
     
+    # TODO: no longer need to move forward, so just land
     # only once centered move forward
     if box_x > -ok_region and box_x < ok_region:
         x_command+=dx
