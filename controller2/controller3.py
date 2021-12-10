@@ -18,7 +18,7 @@ camera_number = 0
 DEFAULT_VELOCITY = 0.8
 DX = 0.25
 DY = 0.2
-SAFETY_DISTANCE_TO_SIDE = .1
+SAFETY_DISTANCE_TO_SIDE = .18
 SAFETY_DISTANCE_TO_END = 0.15 # reduce later when write whte line detect
 SAFETY_PX_TO_OBJ = 60 #px
 L_VS_R = 2 #px
@@ -118,7 +118,7 @@ if check_crazyflie_available():
                     
                     # inch forwards checking distances periodically
                     side_distance = (dist_left, dist_right)[go_right] # false = first, true = second
-                    pos_neg = (1,-1)[go_right] # positive y is to the left, negative is to the left
+                    pos_neg = (1,-1)[go_right] # positive y is to the left, negative is to the right
                     dist_to_obs_center = []
                     print("We are going to move right, true or false: ", go_right)
                     # while we are in bounds and aren't too close to an obstacle move in direction indicated
@@ -140,9 +140,13 @@ if check_crazyflie_available():
 
                         curr_angle = rotate_to(scf, curr, curr_angle, 0)
 
-                    # move to ideal position again and rotate forward
-                    max_dist_index = np.argmax([pos[0] for pos in dist_to_obs_center])
-                    curr = move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], DEFAULT_VELOCITY, True)
+                    # weird bug where sometimes drifted into bad region between setting pos_neg and while loop
+                    # makes dist_to_obs_center sometimes empty
+                    if dist_to_obs_center:
+                        # move to ideal position again and rotate forward
+                        max_dist_index = np.argmax([pos[0] for pos in dist_to_obs_center]) 
+                        curr = move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], DEFAULT_VELOCITY, True)
+
                     cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
 
                     # if none of the positions were good, will pick best position 
