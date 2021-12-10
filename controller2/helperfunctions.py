@@ -99,6 +99,25 @@ def z_estimate(scf):
     # print("Z estimate: ", z)
     return z
 
+def pos_estimate(scf):
+    """Get the x coordinate estimate
+    """
+    log_config2 = LogConfig(name='Kalman Variance', period_in_ms=100)
+    log_config2.add_variable('stateEstimate.x', 'float')
+    log_config2.add_variable('stateEstimate.y', 'float')
+    log_config2.add_variable('stateEstimate.z', 'float')
+
+    with SyncLogger(scf, log_config2) as logger:
+        for log_entry in logger:
+            data = log_entry[1]
+            x = data['stateEstimate.x']
+            y = data['stateEstimate.y']
+            z = data['stateEstimate.z']
+            break
+    
+    return [x, y, z]
+
+
 def move_to_setpoint(scf, start, end, v):
     cf = scf.cf
     
@@ -140,13 +159,22 @@ def move_to_setpoint(scf, start, end, v):
         cf.commander.send_hover_setpoint(0, 0, 0, z_end)
         time.sleep(0.1)
 
-    end[2] = z_end # if go over table have to update this
+    # end[2] = z_end # if go over table have to update this
     print("in move_to_setpoint: returning")
-    return end
+    return pos_estimate(scf)
 
 def relative_move(scf, start, dx, v):
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
     return move_to_setpoint(scf, start, end, v)
+
+def look_left(cf, start):
+    cf.commander.send_position_setpoint(start[0], start[1], start[2], 90)
+
+def look_right(cf, start):
+    cf.commander.send_position_setpoint(start[0], start[1], start[2], -90)
+
+def look_center(cf, start):
+    cf.commander.send_position_setpoint(start[0], start[1], start[2], 0)
 
 
 def takeoff(cf, height):

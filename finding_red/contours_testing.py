@@ -55,7 +55,7 @@ for idx in range(n_contours):
 # find centre of min flow
 min_flow_index = np.argmin(av_flows) # farthest obj has highest flow
 farthest_contour = cv2.drawContours(mask, large_contours, min_flow_index, 1, -1) # template, contours, index, num_to_put_in, thickness
-x,y,w,h = cv2.boundingRect(farthest_contour) #top left corner
+x,y,w,h = cv2.boundingRect(farthest_contour) # top left corner
 c_x, c_y = (x+w/2)-640/2, 480-(y+h/2) # from centre bottom
 angle_from_vertical = 90-np.arctan2(c_y,c_x)*180/np.pi # fun for debugging
 print(angle_from_vertical)
