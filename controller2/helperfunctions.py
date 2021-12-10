@@ -13,6 +13,7 @@ import numpy as np
 
 TABLE_HEIGHT_METERS = 0.72
 SUDDEN_JUMP_METERS = 0.15
+MIN_CONTOUR_SIZE = 500.0
 
 def check_crazyflie_available():
     """Inits crazyflie drivers, finds local crazflies, 
@@ -62,10 +63,6 @@ def time_averaged_frame(cap):
             successful_frames += 1
     return True, np.mean(to_avg, axis=0).astype(np.uint8)
 
-
-        
-
-
 def set_pid_controller(cf):
     """Reset PID controller and Kalman position estimate
     """
@@ -84,7 +81,7 @@ def log_config_setup():
     print('log config setup')
     return log_config
 
-def z_estimate(scf, log_config):
+def z_estimate(scf):
     """Get the z coordinate estimate
     """
     # print('Getting z estimate')
@@ -101,7 +98,7 @@ def z_estimate(scf, log_config):
     # print("Z estimate: ", z)
     return z
 
-def move_to_setpoint(scf, start, end, v, log_config):
+def move_to_setpoint(scf, start, end, v):
     cf = scf.cf
     
     # move along x,y
@@ -110,7 +107,7 @@ def move_to_setpoint(scf, start, end, v, log_config):
     xy_grad = np.array(end[0:2]) - np.array(start[0:2])
     xy_dist = np.linalg.norm(xy_grad)
     xy_step, t = xy_grad/steps, xy_dist/v/steps
-    z_measured_start, table = z_estimate(scf, log_config), False
+    z_measured_start, table = z_estimate(scf), False
     print('about to start xy move')
     for step_idx in range(1,steps+1):
         temp_pos = [start[0]+xy_step[0]*step_idx, start[1]+xy_step[1]*step_idx, z_start]
@@ -120,7 +117,7 @@ def move_to_setpoint(scf, start, end, v, log_config):
         start_time = time.time()
         while time.time() < start_time + t:
             if not table: 
-                z_measurement = z_estimate(scf, log_config)
+                z_measurement = z_estimate(scf)
                 if np.abs(z_measured_start - z_measurement) > SUDDEN_JUMP_METERS:
                     print('found the table, z_measurement: ', z_measurement)
                     for _ in range(20):
@@ -145,9 +142,9 @@ def move_to_setpoint(scf, start, end, v, log_config):
     print("in move_to_setpoint: returning")
     return end
 
-def relative_move(scf, start, dx, v, log_config):
+def relative_move(scf, start, dx, v):
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
-    return move_to_setpoint(scf, start, end, v, log_config)
+    return move_to_setpoint(scf, start, end, v)
 
 
 def takeoff(cf, height):
@@ -178,26 +175,6 @@ def land(cf, curr):
         time.sleep(0.1)
 
 
-
-
-
-def find_greatest_contour(contours):
-    """Finds greatest contour len=2 tuple of: its area, its index in contours list
-    """
-    largest_area = 0
-    largest_contour_index = -1
-    i = 0
-    total_contours = len(contours)
-
-    while i < total_contours:
-        area = cv2.contourArea(contours[i])
-        if area > largest_area:
-            largest_area = area
-            largest_contour_index = i
-        i += 1
-
-    return largest_area, largest_contour_index
-
 def red_filter(frame):
     """Turns camera frame into bool array of red objects
     """
@@ -215,69 +192,42 @@ def red_filter(frame):
 
     return res
 
-def check_contours(frame):
-    """Checks size of contours in frame. True if largest over size 100.
-    """
-    print('Checking image:')
-
-    # These define the upper and lower HSV for the red obstacles
-    # May change on different drones.
-    input_frame = red_filter(frame)
-
-    # Do the contour detection on the input frame
-    contours, hierarchy = cv2.findContours(input_frame, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    largest_area, largest_contour_index = find_greatest_contour(contours)
-
-    # print(largest_area)
-
-    if largest_area > 100:
-        return True
-    else:
-        return False
-
-def check_contours_matrix(frame, cont):
-    
-
-    return
-
         
-def furthestObstacle(frame1, frame2, DX):
-    """Given a contour finds time to collision"""
-    flow = cv2.calcOpticalFlowFarneback(frame1, frame2, None, 0.5, 4, 15, 4, 7, 1.5, 0)
-    frame2 = frame1
-    red = cv2.red_filter(frame1)
-    cont = cv2.findContours(red, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    newFlow = []
-    contours = check_contours_matrix(red, cont)
-    for i in range (len(contours)):
-        for j in range (len(contours[0])):
-            if contours[i][j] == 1:
-               newFlow[i][j] = np.linalg.norm(flow[i][j])
-            else:
-                newFlow[i][j] = 0
-    sum = 0
-    count = 0
-    avgFlows = []
-    for contour in len(cont):
-        for i in range (len(newFlow)):
-           for j in range (len(newFlow[0])):
-                # URGENT: what exactly should the logic here be?
-                # if newFlow[i][j] != 0 and (newFlow[i][j+1]|newFlow[i+1][j]|newFlow[i-1][j]|newFlow[i][j-1]!=0):
-                # This is Jacob's guess, need to confirm with Bella:
-                if newFlow[i][j] != 0 and (newFlow[i][j+1] != 0 or newFlow[i+1][j] != 0 or newFlow[i-1][j] != 0 or newFlow[i][j-1] != 0):
-                    sum += newFlow[i][j]
-                    count += 1
-        avgFlows[contour] = sum/count
-        farthest = avgFlows.index(min(avgFlows))
+def furthest_obstacle(frame1, frame2, dx):
+    """Given a contour returns a next step that should be taken"""
+    # find flow = only accepts 1 channel images
+    # based on https://github.com/ferreirafabio/video2tfrecord/blob/master/video2tfrecord.py
+    grey_frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    grey_frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+    flow = cv2.calcOpticalFlowFarneback(prev=grey_frame1, next=grey_frame2, flow=None, pyr_scale=0.5, levels=4, winsize=15, iterations=4, poly_n=7, poly_sigma=1.5, flags=0)
+    mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1]) # mag matrix shape is (480, 640)
 
-    # Return direction to go towards (goes right if contour over half of the frame)
-    x,y,w,h = cv2.boundingRect(farthest)
-    FRAME_SIZE_HALVED = 320
-    if x > FRAME_SIZE_HALVED:
-        return [0, -DX, 0]
-    else:
-        return [0, DX, 0]
-    
+    # find contours
+    red1 = red_filter(frame1) # shape is also (480, 640)
+    contours, _ = cv2.findContours(red1, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    large_contours = [cont for cont in contours if cv2.contourArea(cont) > MIN_CONTOUR_SIZE]
+    n_contours = len(large_contours)
+
+    # find flow of each contour
+    av_flows = []
+    mask = np.zeros(red1.shape,np.uint8)
+    for idx in range(n_contours):
+        # put 1s in every cell
+        region = cv2.drawContours(mask, large_contours,  idx, 1, -1) # template, contours, index, num_to_put_in, thickness
+        masked_flow_region = cv2.bitwise_and(mag, mag, mask=region) # mask of region
+        av_flow = np.sum(masked_flow_region) / np.sum(region)
+        av_flows.append(av_flow)
+
+    # find centre of min flow
+    min_flow_index = np.argmin(av_flows) # farthest obj has highest flow
+    farthest_contour = cv2.drawContours(mask, large_contours, min_flow_index, 1, -1) # template, contours, index, num_to_put_in, thickness
+    x,y,w,h = cv2.boundingRect(farthest_contour) #top left corner
+    c_x, c_y = (x+w/2)-640/2, 480-(y+h/2) # from centre bottom
+    # angle_from_vertical = 90-np.arctan2(c_y,c_x)*180/np.pi # fun for debugging
+
+    step_multiplier = dx/np.linalg.norm([c_x,c_y])
+    return [c_x*step_multiplier, c_y*step_multiplier, 0]
+
 
 def detection_center(detection):
     """Computes the center x, y coordinates of the book"""
