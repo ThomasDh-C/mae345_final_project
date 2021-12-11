@@ -31,7 +31,8 @@ def green_filter(frame):
     return green
 
 frame = cv2.imread('wheresthered.png')
-
+res = green_filter(frame)
+x,y,w,h = cv2.boundingRect(res)
 
 while(True):
 
