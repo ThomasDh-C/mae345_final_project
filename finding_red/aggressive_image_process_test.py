@@ -1,4 +1,5 @@
 import cv2
+import time
 
 def red_filter(frame):
     """Turns camera frame into bool array of red objects
@@ -17,16 +18,18 @@ def red_filter(frame):
 
     return res
 
-
+start = time.time()
 frame = cv2.imread('wheresthered_og.png')
 frame2 = cv2.GaussianBlur(frame,(7,7),0)
 
-frame3 = cv2.fastNlMeansDenoisingColored(frame2,None,10,10,7,21)
-h = cv2.cvtColor(frame3, cv2.COLOR_BGR2HSV)[:,:,0]
+frame3 = cv2.fastNlMeansDenoisingColored(frame2,None,h=10,hColor=10,templateWindowSize=3,searchWindowSize=11)
+# h = cv2.cvtColor(frame3, cv2.COLOR_BGR2HSV)[:,:,0]
+res = red_filter(frame3)
+
 while(True):
     cv2.imshow('frame',frame)  
     cv2.imshow('h',frame3)
-    cv2.imshow('red_filter', red_filter(frame3))
+    cv2.imshow('red_filter', res)
 
     # Hit q to quit.
     if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -2,30 +2,52 @@
 """
 import time
 import numpy as np
+import cv2
 from pynput import keyboard
+import matplotlib.pyplot as plt
 
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from helperfunctions import red_filter, time_averaged_frame
 from helperfunctions import check_crazyflie_available, start_video, set_pid_controller, key_press, relative_move, land, takeoff, move_to_setpoint
-from helperfunctions import time_averaged_frame, center_vertical_obs_bottom, rotate_to, find_book
+from helperfunctions import time_averaged_frame, center_vertical_obs_bottom, rotate_to, find_book, take_off_slide_left
 
 # important constants
 group_number = 12
 camera_number = 0
+tracking_label = 1              # person COCO dataset
+confidence = 0.3                # confidence of detection
 
 # TODO: tune these constants
 DEFAULT_VELOCITY = 0.8
+BIG_DX = 0.4
+SMALL_DX = 0.2
 DX = 0.25
+BIG_DY = 0.4
+SMALL_DY = 0.2
 DY = 0.2
+VERY_CLEAR_PX = 240 # TODO: tune
+SAFETY_PX_TO_OBJ = 80 # TODO: tune
+
 SAFETY_DISTANCE_TO_SIDE = .18
 SAFETY_DISTANCE_TO_END = 0.15 # reduce later when write whte line detect
-SAFETY_PX_TO_OBJ = 60 #px
 L_VS_R = 2 #px
 BOOK_MARGIN_PX = 30
 WIDTH = 1.32
 LENGTH = 2.7 
-CLEAR_CENTER = 100 #pixel column clear to end needed
+CLEAR_CENTER = 50 #pixel column clear to end needed
+
+# load the COCO class names
+with open('Lab9_Supplement/object_detection_classes_coco.txt', 'r') as f:
+    class_names = f.read().split('\n')
+    
+# get a different color array for each of the classes
+COLORS = np.random.uniform(0, 255, size=(len(class_names), 3))
+
+# load the DNN model
+model = cv2.dnn.readNet(model='Lab9_Supplement/frozen_inference_graph.pb',
+                        config='Lab9_Supplement/ssd_mobilenet_v2_coco_2018_03_29.pbtxt.txt', 
+                        framework='TensorFlow')
 
 # IDEAS
 # while loop for moving forwards
@@ -47,59 +69,68 @@ if check_crazyflie_available():
         # scf = sync_crazyflie obj, cf = crazyflie obj
         cf = scf.cf
         cap = start_video(camera_number)
+        #create two subplots
+        ax1 = plt.subplot(1,2,1)
+        ax2 = plt.subplot(1,2,2)
+        
+        #create two image plots
+        _, frame = time_averaged_frame(cap)
+        im1 = ax1.imshow(frame)
+        im2 = ax2.imshow(frame)
+    # im1.set_data(frame)
+        plt.ion()
+
         set_pid_controller(cf) # reset now that firmly on the ground
 
         with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
             # Take off and move to the left
             curr = takeoff(cf, 0.4)
 
-            # check at 20 positions dist_to_obs where don't have to check l_r as 'safe'
-            dist_to_obs_center, steps = [], 8
-            # step_size = max((WIDTH-curr[1])/steps, DY)
-            for y_targ in np.linspace([1], WIDTH, steps):
-                curr = relative_move(scf, curr, [0, DY, 0], DEFAULT_VELOCITY, False)
-
-                _, frame = time_averaged_frame(cap)
-                red = red_filter(frame) # super accomodating
-                dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
-                dist_to_obs_center.append((dist_center_obs, curr)) 
-            # find index with max distance
-            max_dist_index = np.argmax([pos[0] for pos in dist_to_obs_center])
-            curr = move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], DEFAULT_VELOCITY, True)
+            # check at 8 positions dist_to_obs where don't have to check l_r as 'safe'
+            curr = take_off_slide_left(scf, curr, WIDTH, DEFAULT_VELOCITY)
             
             # aligned with furthest obstacle/ no obstacle
             while not reached_table:
                 # find distance to closest obstacle
                 _, frame = time_averaged_frame(cap)
+                im1.set_data(frame)
                 red = red_filter(frame) # super accomodating
                 dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER)
-                clear_in_front = dist_center_obs > SAFETY_PX_TO_OBJ
+                # clear_in_front = dist_center_obs > SAFETY_PX_TO_OBJ
 
-                if clear_in_front:
-                    # find distance to closest obstacle again
+                if dist_center_obs >= VERY_CLEAR_PX:
                     _, frame = time_averaged_frame(cap)
+                    im1.set_data(frame)
                     red = red_filter(frame) # super accomodating
                     dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER)
-                    clear_in_front = dist_center_obs > SAFETY_PX_TO_OBJ
-                    if clear_in_front:
-                        curr = relative_move(scf, curr, [DX, 0, 0], DEFAULT_VELOCITY, True)
+                    if dist_center_obs >= VERY_CLEAR_PX:
+                        curr = relative_move(scf, curr, [BIG_DX, 0, 0], DEFAULT_VELOCITY, True)
+                
+                elif SAFETY_PX_TO_OBJ < dist_center_obs < VERY_CLEAR_PX:
+                    curr = relative_move(scf, curr, [SMALL_DX, 0, 0], DEFAULT_VELOCITY, True)
                 
                 # peek left and right, determine which way is safe to move in
                 # move to best position in that direction
                 else:
                     print("Time to look around...")
-                    # peek left
+                    print("Peeking right")
+                    # peek right
                     curr_angle = rotate_to(scf, curr, curr_angle, -90)
                     _, frame = time_averaged_frame(cap)
+                    im2.set_data(frame)
                     red = red_filter(frame) # super accomodating
-                    dist_left = center_vertical_obs_bottom(red, CLEAR_CENTER)
+                    dist_right = center_vertical_obs_bottom(red, CLEAR_CENTER)
+                    print("Dist_right: ", dist_right)
 
-                    # return center, then peek right
+                    # return center, then peek left
+                    print("Peeking left")
                     curr_angle = rotate_to(scf, curr, curr_angle, 0)
+
                     curr_angle = rotate_to(scf, curr, curr_angle, 90)
                     _, frame = time_averaged_frame(cap)
                     red = red_filter(frame) # super accomodating
-                    dist_right = center_vertical_obs_bottom(red, CLEAR_CENTER)
+                    dist_left = center_vertical_obs_bottom(red, CLEAR_CENTER)
+                    print("Dist_left: ", dist_left)
 
                     # return cetner
                     curr_angle = rotate_to(scf, curr, curr_angle, 0)
@@ -121,15 +152,20 @@ if check_crazyflie_available():
                     pos_neg = (1,-1)[go_right] # positive y is to the left, negative is to the right
                     dist_to_obs_center = []
                     print("We are going to move right, true or false: ", go_right)
-                    # while we are in bounds and aren't too close to an obstacle move in direction indicated
-                    while side_distance > SAFETY_PX_TO_OBJ and SAFETY_DISTANCE_TO_SIDE<curr[1]<WIDTH-SAFETY_DISTANCE_TO_SIDE:
-                        curr = relative_move(scf, curr, [0, DY*pos_neg, 0], DEFAULT_VELOCITY, False)
 
+                    # use big sideways moves to get us places fast
+                    while side_distance >= VERY_CLEAR_PX and SAFETY_DISTANCE_TO_SIDE < curr[1] < WIDTH - SAFETY_DISTANCE_TO_SIDE:
+                        curr = relative_move(scf, curr, [0, BIG_DY*pos_neg, 0], DEFAULT_VELOCITY, False)
                         # forwards
-                        curr_angle = rotate_to(scf, curr, curr_angle, 0)
+                        # curr_angle = rotate_to(scf, curr, curr_angle, 0) # already facing forward
                         _, frame = time_averaged_frame(cap)
                         red = red_filter(frame) # super accomodating
                         dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER)
+                        # save battery by breaking out if it is clear ahead
+                        if dist_center_obs >= VERY_CLEAR_PX:
+                            # set side_distance high so we skip over next while loop
+                            side_distance = 480
+                            break
                         dist_to_obs_center.append((dist_center_obs, curr))
 
                         # update side_distance
@@ -139,7 +175,28 @@ if check_crazyflie_available():
                         side_distance = center_vertical_obs_bottom(red, CLEAR_CENTER)
 
                         curr_angle = rotate_to(scf, curr, curr_angle, 0)
+                    
+                    # use little sideways moves to be safer afterward
+                    while SAFETY_PX_TO_OBJ < side_distance < VERY_CLEAR_PX and SAFETY_DISTANCE_TO_SIDE < curr[1] < WIDTH - SAFETY_DISTANCE_TO_SIDE:
+                        curr = relative_move(scf, curr, [0, SMALL_DY*pos_neg, 0], DEFAULT_VELOCITY, False)
+                        # forwards
+                        # curr_angle = rotate_to(scf, curr, curr_angle, 0) # already facing forward
+                        _, frame = time_averaged_frame(cap)
+                        red = red_filter(frame) # super accomodating
+                        dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER)
+                        # save battery by breaking out if it is clear ahead
+                        if dist_center_obs >= VERY_CLEAR_PX:
+                            break
+                        dist_to_obs_center.append((dist_center_obs, curr))
 
+                        # update side_distance
+                        curr_angle = rotate_to(scf, curr, curr_angle, 90*pos_neg)
+                        _, frame = time_averaged_frame(cap)
+                        red = red_filter(frame) # super accomodating
+                        side_distance = center_vertical_obs_bottom(red, CLEAR_CENTER)
+
+                        curr_angle = rotate_to(scf, curr, curr_angle, 0)
+                    
                     # weird bug where sometimes drifted into bad region between setting pos_neg and while loop
                     # makes dist_to_obs_center sometimes empty
                     if dist_to_obs_center:
@@ -170,10 +227,9 @@ if check_crazyflie_available():
             while True:
                 ret, frame = time_averaged_frame(cap)
                 # left of frame is 0 line
-                # TODO: find_book code
-                book_center_px, book_center_py = find_book(frame)
+                book_center_px = find_book(model, frame, confidence)
                 if ret:
-                    if np.norm(book_center_px-320) < BOOK_MARGIN_PX:
+                    if np.linalg.norm(book_center_px-320) < BOOK_MARGIN_PX:
                         break # Success!!!
                     # in left half frame - move left
                     elif book_center_px-320 < 0:
@@ -188,3 +244,6 @@ if check_crazyflie_available():
                     curr = relative_move(scf, curr, [0, go_left*DY, 0], DEFAULT_VELOCITY, False)
             
             land(cf, curr)
+
+        plt.ioff() # due to infinite loop, this gets never called.
+        plt.show()
