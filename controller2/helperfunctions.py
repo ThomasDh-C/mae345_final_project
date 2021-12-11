@@ -259,13 +259,14 @@ def center_vertical_obs_bottom(red_frame, CLEAR_CENTER):
     return min(bottom_y)
 
 def rotate_to(scf, curr, current_angle, new_angle):
-    # send_hover_setpoint(self, vx, vy, yawrate, zdistance)
-    # pos_neg = new_angle-current_angle
-    # while angle_estimate(scf)
     cf = scf.cf
-    for i in np.linspace(current_angle, new_angle, 100):
-        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], i)
-        time.sleep(0.02)
+    pos_neg = np.sign(new_angle-current_angle)
+    yawrate = pos_neg*90/2 # degrees per second
+    while angle_estimate(scf)-new_angle>0:
+        cf.commander.send_hover_setpoint(0, 0, yawrate, curr[2])
+    # for i in np.linspace(current_angle, new_angle, 100):
+    #     cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], i)
+    #     time.sleep(0.02)
     for _ in range(20):
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
