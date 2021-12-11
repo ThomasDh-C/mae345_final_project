@@ -215,14 +215,15 @@ if check_crazyflie_available():
                 # as will be closer to one of the sides
         
 
-            # TODO: update reached table with greenness or white lines on ground?
+            
             reached_table = curr[0] > LENGTH - SAFETY_DISTANCE_TO_END # no obstacles in last 0.5m
             if reached_table: break
         
+        # TODO: update reached table with greenness or white lines on ground?
+        # Thomas rn :)
+
         # reached the end of the obstacles, so fly up to table height
-        # TODO: tune the flight height
         curr = relative_move(scf, curr, [0,0,0.5], .1, True)
-        
         
 
         # Centre book in frame 
