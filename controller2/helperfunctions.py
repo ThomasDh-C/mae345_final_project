@@ -171,8 +171,38 @@ def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
     print([pos[0] for pos in dist_to_obs_center])
     # find index with max distance
     max_dist_index = np.argmax([pos[0] for pos in dist_to_obs_center])
+    max_dist_val, best_start_point = dist_to_obs_center[max_dist_index][0], dist_to_obs_center[max_dist_index][1]
+    
+    # if multiple cells with max dist +-2px choose center of largest cluster
+    mask_max_dist = [abs(pos[0]-max_dist_val) <= 2 for pos in dist_to_obs_center]
+    if sum(mask_max_dist) > 1:
+        # list of cluster tuples called groups
+        groups, prev = [], False
+        for idx, val in enumerate(mask_max_dist):
+            # start of new chain of Trues
+            if val and not prev:
+                groups.append((idx, idx))
+            # in chain of trues
+            elif val and prev:
+                groups[-1][-1] = idx
+            # do nothing for Falses
+            prev = val
+
+        # find biggest group
+        max_group_idx = np.argmax([group[1]-group[0]+1 for group in groups])
+
+        # set best_start_point to centre of group 
+        l_idx, r_idx = groups[max_group_idx][0], groups[max_group_idx][1]
+        max_group_centre_idx = l_idx + ((r_idx - l_idx) / 2)
+        if max_group_centre_idx%1==0.5:
+            zeroed_centre_idx = int(max_group_centre_idx)
+            l_p, r_p = dist_to_obs_center[zeroed_centre_idx][1], dist_to_obs_center[zeroed_centre_idx+1][1]  
+            best_start_point = [(l_p[0]+r_p[0])/2, (l_p[1]+r_p[1])/2, (l_p[2]+r_p[2])/2]
+        else:
+            best_start_point = dist_to_obs_center[int(max_group_centre_idx)][1]
+
     curr = pos_estimate(scf)
-    return move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], v, True)
+    return move_to_setpoint(scf, curr, best_start_point, v, True)
 
 def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap):
     """Slide forward till a red object is too close for a fast move"""
