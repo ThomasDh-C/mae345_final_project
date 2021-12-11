@@ -258,41 +258,6 @@ def rotate_to(scf, curr, current_angle, new_angle):
         time.sleep(0.1)
     return angle_estimate(scf)
 
-def furthest_obstacle(frame1, frame2, dx):
-    """Given two frames returns a next step that should be taken"""
-    
-    # find flow = only accepts 1 channel images
-    # based on https://github.com/ferreirafabio/video2tfrecord/blob/master/video2tfrecord.py
-    grey_frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-    grey_frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-    flow = cv2.calcOpticalFlowFarneback(prev=grey_frame1, next=grey_frame2, flow=None, pyr_scale=0.5, levels=4, winsize=15, iterations=4, poly_n=7, poly_sigma=1.5, flags=0)
-    mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1]) # mag matrix shape is (480, 640)
-
-    # find contours
-    red1 = red_filter(frame1) # shape is also (480, 640)
-    contours, _ = cv2.findContours(red1, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    large_contours = [cont for cont in contours if cv2.contourArea(cont) > MIN_CONTOUR_SIZE]
-    n_contours = len(large_contours)
-
-    # find flow of each contour
-    av_flows = []
-    mask = np.zeros(red1.shape,np.uint8)
-    for idx in range(n_contours):
-        # put 1s in every cell
-        region = cv2.drawContours(mask, large_contours,  idx, 1, -1) # template, contours, index, num_to_put_in, thickness
-        masked_flow_region = cv2.bitwise_and(mag, mag, mask=region) # mask of region
-        av_flow = np.sum(masked_flow_region) / np.sum(region)
-        av_flows.append(av_flow)
-
-    # find centre of min flow
-    min_flow_index = np.argmin(av_flows) # farthest obj has highest flow
-    farthest_contour = cv2.drawContours(mask, large_contours, min_flow_index, 1, -1) # template, contours, index, num_to_put_in, thickness
-    x,y,w,h = cv2.boundingRect(farthest_contour) #top left corner
-    c_x, c_y = (x+w/2)-640/2, 480-(y+h/2) # from centre bottom
-
-    step_multiplier = dx/np.linalg.norm([c_x,c_y])
-    return [c_x*step_multiplier, c_y*step_multiplier, 0]
-
 def find_book(model, frame, confidence):
     """Finds x coordinate of person taped to book in frame"""
     image = frame
