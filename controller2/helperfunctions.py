@@ -418,6 +418,22 @@ def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
     cf.commander.send_position_setpoint(x_command, y_command, 0.5, 0)
     return False, x_command, y_command
 
+def green_filter(frame):
+    """Filter frame for just the white lines at the bottom of the image
+    """
+    frame = cv2.GaussianBlur(frame,(7,7),0)
+    frame = cv2.fastNlMeansDenoisingColored(frame,None,h=10,hColor=10,templateWindowSize=3,searchWindowSize=11)
+    frame = cv2.GaussianBlur(frame, (7, 7), 0)
+    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # hsv lower and upper bounds of white (works pretty well but needs more testing)
+    lb = (27, 26, 153)
+    ub = (60, 255, 255)
+
+    green = cv2.inRange(hsv_frame, lb, ub)
+    return green
+
+
 def key_press(key, cf, cap, curr):
     """Aysnc key press handler
     """
