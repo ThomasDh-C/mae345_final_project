@@ -86,8 +86,9 @@ if check_crazyflie_available():
 
             # -- Make a big jump if obstacle is far/ non-existent --
             if sum([dist >= VERY_CLEAR_PX for dist in obj_distance])>3:
-                print("\tSo, making a big jump")
-                curr = relative_move(scf, curr, [BIG_DX, 0, 0], DEFAULT_VELOCITY, True)
+                print("\tSo, making a forward slide")
+                curr = forward_slide_to_obs(scf, curr, DEFAULT_VELOCITY/3, VERY_CLEAR_PX, LENGTH - SAFETY_DISTANCE_TO_END, CLEAR_CENTER, cap)
+                # curr = relative_move(scf, curr, [BIG_DX, 0, 0], DEFAULT_VELOCITY, True)
             # -- Make a small jump if obstacle is far/ non-existent --
             elif sum([dist >= SAFETY_PX_TO_OBJ for dist in obj_distance])>3:
                 print("\tSo, making a small jump")

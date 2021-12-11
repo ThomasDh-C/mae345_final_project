@@ -174,6 +174,41 @@ def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
     curr = pos_estimate(scf)
     return move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], v, True)
 
+def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap):
+    """Slide forward till a red object is too close for a fast move"""
+    cf = scf.cf
+
+    dt = .15
+    dx = v/dt
+    start_time, c = time.time(), 0
+    while pos_estimate(scf)[0] < max_y:
+        c+=1
+        curr[0]+=dx
+        cf.commander.send_position_setpoint(curr)
+
+        # only stop sliding if get two positive detections
+        _, frame = time_averaged_frame(cap)
+        red = red_filter(frame) # super accomodating
+        dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
+        if dist < VERY_CLEAR_PX: 
+            for _ in range(10):
+                cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+                time.sleep(0.1)
+            _, frame = time_averaged_frame(cap)
+            red = red_filter(frame) # super accomodating
+            dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
+            if dist < VERY_CLEAR_PX: 
+                break
+
+        while time.time()<dt*c+start_time:
+            continue
+    
+    # stabilise
+    for _ in range(20):
+        cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+        time.sleep(0.1)
+    return pos_estimate(scf)
+
 def takeoff(cf, height):
     """Drone rises from ground to set height"""
     # Ascend:
