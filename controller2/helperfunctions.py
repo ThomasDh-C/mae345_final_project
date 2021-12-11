@@ -169,7 +169,7 @@ def relative_move(scf, start, dx, v, big_move):
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
     return move_to_setpoint(scf, start, end, v, big_move)
 
-def take_off_slide_left(scf, start, WIDTH, v):
+def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
     cf = scf.cf
     start, end, dist_to_obs_center = curr, [curr[0], WIDTH, curr[2]], []
     
@@ -181,22 +181,31 @@ def take_off_slide_left(scf, start, WIDTH, v):
     xy_step, step_t = xy_grad/steps, xy_dist/v/steps
     start_time = time.time()
     for step_idx in range(1,steps+1):
+        # make the move
         temp_pos = [start[0]+xy_step[0]*step_idx, start[1]+xy_step[1]*step_idx, z_start]
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
+
+        # compensate for high speed :)
+        curr_pos_time = time.time()
         curr = pos_estimate(scf)
+        _, frame = time_averaged_frame(cap)
+        red = red_filter(frame) # super accomodating
         dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
-        dist_to_obs_center.append((dist_center_obs, curr))
+        red_pos_time = time.time()
+        curr_pos_step = (red_pos_time-curr_pos_time)*v*xy_grad/xy_dist
+        dist_to_obs_center.append((dist_center_obs, [curr[0]+curr_pos_step[0],curr[1]+curr_pos_step[1], curr[2]]))
         while time.time()<step_t*step_idx+start_time:
             continue
-
+    
     for _ in range(10):
         cf.commander.send_hover_setpoint(0, 0, 0, z_end)
         time.sleep(0.1)
-    
+    print('Starting points I found')
+    print([pos[0] for pos in dist_to_obs_center])
     # find index with max distance
     max_dist_index = np.argmax([pos[0] for pos in dist_to_obs_center])
     curr = pos_estimate(scf)
-    return move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], DEFAULT_VELOCITY, True)
+    return move_to_setpoint(scf, curr, dist_to_obs_center[max_dist_index][1], v, True)
 
 def takeoff(cf, height):
     # Ascend:
@@ -275,16 +284,10 @@ def rotate_to(scf, curr, current_angle, new_angle):
         cf.commander.send_hover_setpoint(0, 0, yawrate, curr[2])
         absyawrate = np.linalg.norm(yawscale * yawrate)
         yawrate = pos_neg*max(absyawrate, 3)
-        print("____________________________________________")
-        print("\tCurrent yaw rate: ", yawrate)
-        print("\tCurrent angle: ", angle_estimate(scf))
-        print("\tTarget angle: ", new_angle)
-        print("____________________________________________")
         time.sleep(0.01)
     cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
     time.sleep(0.5)
     
-    # cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], new_angle)
     for i in np.linspace(angle_estimate(scf), new_angle, 5):
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], i)
         time.sleep(0.2)
