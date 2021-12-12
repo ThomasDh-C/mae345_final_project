@@ -12,7 +12,7 @@ from helperfunctions import *
 
 # important constants
 group_number = 12
-camera_number = 0
+camera_number = 1 #0 on jacobs
 tracking_label = 1              # person COCO dataset
 confidence = 0.3                # confidence of detection
 
@@ -25,8 +25,8 @@ GREEN_DX = 0.05
 BIG_DY = 0.4
 SMALL_DY = 0.2
 DY = 0.2
-VERY_CLEAR_PX = 50 # TODO: tuned down from 135
-SAFETY_PX_TO_OBJ = 30 # TODO: tuned down from 60
+VERY_CLEAR_PX = 55
+SAFETY_PX_TO_OBJ = 40
 
 SAFETY_DISTANCE_TO_SIDE = .18
 SAFETY_DISTANCE_TO_END = 0.15 # reduce later when write whte line detect
@@ -34,10 +34,10 @@ L_VS_R = 2 #px
 BOOK_MARGIN_PX = 20
 WIDTH = 1.32
 LENGTH = 2.7 
-CLEAR_CENTER = 40 # pixel column clear to end needed
+CLEAR_CENTER = 55 # pixel column clear to end needed
 
-GREEN_MARGIN = 5 # TODO: tune these
-GREEN_PX_TOP_BOT_IDEAL = 95 # TODO: tune these
+GREEN_MARGIN = 5
+GREEN_PX_TOP_BOT_IDEAL = 95
 
 # load the DNN model
 model = cv2.dnn.readNet(model='Lab9_Supplement/frozen_inference_graph.pb',
@@ -77,7 +77,7 @@ if check_crazyflie_available():
 
         # --- Find best starting y (align with furthest/ no obstacle) ---
         # Don't have to check l_r as 'safe' starting zone
-        curr = take_off_slide_left(scf, curr, WIDTH-SAFETY_DISTANCE_TO_SIDE, DEFAULT_VELOCITY/3, cap, CLEAR_CENTER)
+        curr = take_off_slide_left(scf, curr, WIDTH-SAFETY_DISTANCE_TO_SIDE, DEFAULT_VELOCITY/4, cap, CLEAR_CENTER)
         
         # --- Move forward, move round obstacles, reach kalman end ---
         print(f"Well positioned at x={curr[1]} and ready to move forward")
@@ -94,7 +94,7 @@ if check_crazyflie_available():
             # -- Make a big jump if obstacle is far/ non-existent --
             if sum([dist >= VERY_CLEAR_PX for dist in obj_distance])>3:
                 print("\tSo, making a forward slide")
-                curr = forward_slide_to_obs(scf, curr, DEFAULT_VELOCITY*.5, VERY_CLEAR_PX, LENGTH - SAFETY_DISTANCE_TO_END, CLEAR_CENTER, cap)
+                curr = forward_slide_to_obs(scf, curr, DEFAULT_VELOCITY*.2, VERY_CLEAR_PX, LENGTH - SAFETY_DISTANCE_TO_END, CLEAR_CENTER, cap)
                 # curr = relative_move(scf, curr, [BIG_DX, 0, 0], DEFAULT_VELOCITY, True)
             # -- Make a small jump if obstacle is far/ non-existent --
             elif sum([dist >= SAFETY_PX_TO_OBJ for dist in obj_distance])>3:

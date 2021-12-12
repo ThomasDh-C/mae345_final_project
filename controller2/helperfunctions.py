@@ -157,6 +157,8 @@ def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
         curr = pos_estimate(scf)
         _, frame = time_averaged_frame(cap)
         red = red_filter(frame) # super accomodating
+        # lb, rb = int(640/2-CLEAR_CENTER), int(640/2+CLEAR_CENTER)
+        # cv2.imwrite(f'init_{step_idx}.png', red[:,lb:rb])
         dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
         red_pos_time = time.time()
         curr_pos_step = (red_pos_time-curr_pos_time)*v*xy_grad/xy_dist
@@ -229,6 +231,43 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap):
             dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
             if dist < VERY_CLEAR_PX: 
                 cv2.imwrite(f'imgs/very_clear_frame.png', red)
+                break
+
+        while time.time()<dt*c+start_time:
+            continue
+    
+    # stabilise
+    for _ in range(20):
+        cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+        time.sleep(0.1)
+    return pos_estimate(scf)
+
+def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap, right):
+    """Slide forward till a red object is too close for a fast move"""
+    cf = scf.cf
+
+    dt = .15
+    dy = v*dt*(1,-1)[right]
+    start_time, c = time.time(), 0
+    while pos_estimate(scf)[0] < max_y:
+        curr[1]+=dy
+        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+        c+=1
+
+        # only stop sliding if get two positive detections
+        _, frame = time_averaged_frame(cap)
+        red = red_filter(frame) # super accomodating
+        dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
+        if dist < VERY_CLEAR_PX: 
+            for _ in range(10):
+                cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+                time.sleep(0.1)
+            _, frame = time_averaged_frame(cap)
+            red = red_filter(frame) # super accomodating
+            dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
+            if dist < VERY_CLEAR_PX:
+                lr = ['left','right'][right]
+                cv2.imwrite(f'imgs/{lr}_stop_point.png', red)
                 break
 
         while time.time()<dt*c+start_time:
