@@ -133,16 +133,12 @@ def relative_move(scf, start, dx, v, big_move):
     """Relative x,y,z move at a given velocity"""
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
     return move_to_setpoint(scf, start, end, v, big_move)
-
-def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
-    """Slides drone to the left, then positions drone where it 
-    can see the furthest without being blocked by red"""
-    cf = scf.cf
-    start, end, dist_to_obs_center = curr, [curr[0], WIDTH, curr[2]], []
     
+def left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, steps):
+    cf, dist_to_obs_center = scf.cf, []
+
     # move along x,y
     z_start, z_end = start[2], end[2] # we update both these to - table height if we go over a table
-    steps = 20
     xy_grad = np.array(end[0:2]) - np.array(start[0:2])
     xy_dist = np.linalg.norm(xy_grad)
     xy_step, step_t = xy_grad/steps, xy_dist/v/steps
@@ -170,13 +166,14 @@ def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
         cf.commander.send_hover_setpoint(0, 0, 0, z_end)
         time.sleep(0.1)
     print('Starting points I found')
-    print([pos[0] for pos in dist_to_obs_center])
+    moving_averaged = moving_average([pos[0] for pos in dist_to_obs_center],4)
+    print([int(num) for num in moving_averaged])
     # find index with max distance
-    max_dist_index = np.argmax([pos[0] for pos in dist_to_obs_center])
+    max_dist_index = np.argmax(moving_averaged)
     max_dist_val, best_start_point = dist_to_obs_center[max_dist_index][0], dist_to_obs_center[max_dist_index][1]
     
     # if multiple cells with max dist +-2px choose center of largest cluster
-    mask_max_dist = [abs(pos[0]-max_dist_val) <= 2 for pos in dist_to_obs_center]
+    mask_max_dist = [abs(dist-max_dist_val) <= 2 for dist in moving_averaged]
     if sum(mask_max_dist) > 1:
         # list of cluster tuples called groups
         groups, prev = [], False
@@ -206,14 +203,20 @@ def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
     curr = pos_estimate(scf)
     return move_to_setpoint(scf, curr, best_start_point, v, True)
 
-def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap):
+def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
+    """Slides drone to the left, then positions drone where it 
+    can see the furthest without being blocked by red"""  
+    start, end = curr, [curr[0], WIDTH, curr[2]]
+    return left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, 80)
+
+def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
     """Slide forward till a red object is too close for a fast move"""
     cf = scf.cf
 
     dt = .15
     dx = v*dt
     start_time, c = time.time(), 0
-    while pos_estimate(scf)[0] < max_y:
+    while pos_estimate(scf)[0] < max_x:
         curr[0]+=dx
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
         c+=1
@@ -242,22 +245,24 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap):
         time.sleep(0.1)
     return pos_estimate(scf)
 
-def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap, right):
+def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_TO_SIDE, CLEAR_CENTER, cap, right):
     """Slide forward till a red object is too close for a fast move"""
     cf = scf.cf
 
     dt = .15
     dy = v*dt*(1,-1)[right]
     start_time, c = time.time(), 0
-    while pos_estimate(scf)[0] < max_y:
+    while SAFETY_DISTANCE_TO_SIDE < pos_estimate(scf)[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE:
         curr[1]+=dy
-        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], (1,-1)[right]*90)
+        print('position updated')
         c+=1
 
         # only stop sliding if get two positive detections
         _, frame = time_averaged_frame(cap)
         red = red_filter(frame) # super accomodating
         dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
+        print('distance is', dist,'and checking against', VERY_CLEAR_PX)
         if dist < VERY_CLEAR_PX: 
             for _ in range(10):
                 cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
@@ -266,6 +271,7 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, ca
             red = red_filter(frame) # super accomodating
             dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
             if dist < VERY_CLEAR_PX:
+                print('Distance too short: ', dist)
                 lr = ['left','right'][right]
                 cv2.imwrite(f'imgs/{lr}_stop_point.png', red)
                 break
@@ -338,25 +344,31 @@ def center_vertical_obs_bottom(red_frame, CLEAR_CENTER):
         return 480 # max height of frame
     return min(bottom_y)
 
+# https://www.delftstack.com/howto/python/moving-average-python/
+def moving_average(x, w):
+    return np.convolve(x, np.ones(w), 'valid') / w
+
 def rotate_to(scf, curr, current_angle, new_angle):
     """Steadily rotates the drone a given angle. Works best for 90 degrees"""
     cf = scf.cf
 
     pos_neg = np.sign(current_angle - new_angle)
-    yawrate = pos_neg*90*2 # degrees per second
-    yawscale = 11.0 / 12.0 # tune this
-    yawthreshold = 30
-    while np.linalg.norm(angle_estimate(scf)-new_angle) > yawthreshold:
-        cf.commander.send_hover_setpoint(0, 0, yawrate, curr[2])
-        absyawrate = np.linalg.norm(yawscale * yawrate)
-        yawrate = pos_neg*max(absyawrate, 3)
-        time.sleep(0.01)
+
+    for i in range(6):
+        cf.commander.send_hover_setpoint(0, 0, pos_neg*90, curr[2])
+        time.sleep(0.1)
+    print('first part of rotate')
+    for yawr in np.linspace(pos_neg*90, 0, 5):
+        cf.commander.send_hover_setpoint(0, 0, yawr, curr[2])
+        time.sleep(0.1)
     cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
-    time.sleep(0.5)
-    
+
+    print('second part of yaw rate')
     for i in np.linspace(angle_estimate(scf), new_angle, 5):
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], i)
         time.sleep(0.2)
+
+    print('end of rotation now hovering')
     for _ in range(10):
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
