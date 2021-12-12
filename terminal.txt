@@ -1,0 +1,993 @@
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Exception while doing callback on port [5]
+
+Traceback (most recent call last):
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\__init__.py", line 405, in run
+    cb.callback(pk)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 633, in _new_packet_cb
+    block.unpack_log_data(logdata, timestamp)
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\log.py", line 355, in unpack_log_data
+    value = struct.unpack(
+struct.error: unpack requires a buffer of 4 bytes
+
+Got link error callback [Too many packets lost] in state [2]
+Traceback (most recent call last):
+  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\controller3.py", line 127, in <module>
+    curr_angle = rotate_to(scf, curr, curr_angle, 0)
+  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 314, in rotate_to
+    absyawrate = np.linalg.norm(yawscale * yawrate)
+  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+    angle = data['stateEstimate.yaw']
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\syncLogger.py", line 99, in __next__
+    data = self._queue.get()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\threading.py", line 312, in wait
+    waiter.acquire()
+KeyboardInterrupt[ WARN:0] global D:\a\opencv-python\opencv-python\opencv\modules\videoio\src\cap_msmf.cpp (438) `anonymous-namespace'::SourceReaderCB::~SourceReaderCB terminating async callback
+/g/My Drive/3Junior/Fall/MAE 345/mae345_final_project/controller2>
+
+
+  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+    angle = data['stateEstimate.yaw']
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\syncLogger.py", line 99, in __next__
+    data = self._queue.get()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\threading.py", line 312, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[ WARN:0] global D:\a\opencv-python\opencv-python\opencv\modules\videoio\src\cap_msmf.cpp (438) `anonymous-namespace'::SourceReaderCB::~SourceReaderCB terminating async callback
+/g/My Drive/3Junior/Fall/MAE 345/mae345_final_project/controller2>
+
+
+
+
+
+
+
+
+
+
+  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+    angle = data['stateEstimate.yaw']
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\syncLogger.py", line 99, in __next__
+    data = self._queue.get()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\threading.py", line 312, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[ WARN:0] global D:\a\opencv-python\opencv-python\opencv\modules\videoio\src\cap_msmf.cpp (438) `anonymous-namespace'::SourceReaderCB::~SourceReaderCB terminating async callback
+/g/My Drive/3Junior/Fall/MAE 345/mae345_final_project/controller2>
+  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+    angle = data['stateEstimate.yaw']
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\syncLogger.py", line 99, in __next__
+    data = self._queue.get()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\threading.py", line 312, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[ WARN:0] global D:\a\opencv-python\opencv-python\opencv\modules\videoio\src\cap_msmf.cpp (438) `anonymous-namespace'::SourceReaderCB::~SourceReaderCB terminating async cal  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+    angle = data['stateEstimate.yaw']
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\syncLogger.py", line 99, in __next__
+    data = self._queue.get()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\threading.py", line 312, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[ WARN:0] global D:\a\opencv-python\opencv-python\opencv\modules\videoio\src\cap_msmf.cpp (438) `anonymous-namespace'::SourceReaderCB::~SourceReaderCB terminating async cal  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+    angle = data['stateEstimate.yaw']
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\syncLogger.py", line 99, in __next__
+    data = self._queue.get()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\threading.py", line 312, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[ WARN:0] global D:\a\opencv-python\opencv-python\opencv\modules\videoio\src\cap_msmf.cpp (438) `anonymous-namespace'::SourceReaderCB::~SourceReaderCB terminating async cal  File "g:\My Drive\3Junior\Fall\MAE 345\mae345_final_project\controller2\helperfunctions.py", line 97, in angle_estimate
+    angle = data['stateEstimate.yaw']
+  File "C:\Users\jrbey\AppData\Roaming\Python\Python39\site-packages\cflib\crazyflie\syncLogger.py", line 99, in __next__
+    data = self._queue.get()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "C:\Users\jrbey\AppData\Local\Programs\Python\Python39\lib\threading.py", line 312, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[ WARN:0] global D:\a\opencv-python\opencv-python\opencv\modules\videoio\src\cap_msmf.cpp (438) `anonymous-namespace'::SourceReaderCB::~SourceReaderCB terminating async callback

@@ -30,7 +30,7 @@ cv.createTrackbar(vl, barsWindow, 0, 255, nothing)
 cv.createTrackbar(vh, barsWindow, 0, 255, nothing)
 
 # set initial values for sliders
-lb = (27, 26, 153)
+lb = (29, 75, 0)
 ub = (60, 255, 255)
 cv.setTrackbarPos(hl, barsWindow, lb[0])
 cv.setTrackbarPos(hh, barsWindow, ub[0])
@@ -40,7 +40,7 @@ cv.setTrackbarPos(vl, barsWindow, lb[2])
 cv.setTrackbarPos(vh, barsWindow, ub[2])
 
 while(True):
-    frame = cv.imread('wheresthered.png')
+    frame = cv.imread('green_0.png')
     frame = cv.GaussianBlur(frame, (7, 7), 0)
     frame = cv.fastNlMeansDenoisingColored(frame,None,h=10,hColor=10,templateWindowSize=3,searchWindowSize=11)
     frame = cv.GaussianBlur(frame, (7, 7), 0)

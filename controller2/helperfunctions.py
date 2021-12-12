@@ -13,7 +13,7 @@ import numpy as np
 
 TABLE_HEIGHT_METERS = 0.72
 SUDDEN_JUMP_METERS = 0.15
-MIN_CONTOUR_SIZE = 300.0
+MIN_CONTOUR_SIZE = 100.0
 
 def check_crazyflie_available():
     """Inits crazyflie drivers, finds local crazflies, 
@@ -181,7 +181,7 @@ def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
         for idx, val in enumerate(mask_max_dist):
             # start of new chain of Trues
             if val and not prev:
-                groups.append((idx, idx))
+                groups.append([idx, idx])
             # in chain of trues
             elif val and prev:
                 groups[-1][-1] = idx
@@ -209,12 +209,12 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap):
     cf = scf.cf
 
     dt = .15
-    dx = v/dt
+    dx = v*dt
     start_time, c = time.time(), 0
     while pos_estimate(scf)[0] < max_y:
-        c+=1
         curr[0]+=dx
-        cf.commander.send_position_setpoint(curr)
+        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+        c+=1
 
         # only stop sliding if get two positive detections
         _, frame = time_averaged_frame(cap)
@@ -228,6 +228,7 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_y, CLEAR_CENTER, cap):
             red = red_filter(frame) # super accomodating
             dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
             if dist < VERY_CLEAR_PX: 
+                cv2.imwrite(f'imgs/very_clear_frame.png', red)
                 break
 
         while time.time()<dt*c+start_time:
@@ -273,7 +274,7 @@ def red_filter(frame):
     hsv_frame = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
     #      h    s    v
     llb = (0,   3,   0)
-    ulb = (28,  255, 255)
+    ulb = (26,  255, 255)
     lb =  (120, 3,   0)
     ub =  (180, 255, 255)
 
@@ -286,15 +287,14 @@ def red_filter(frame):
 def center_vertical_obs_bottom(red_frame, CLEAR_CENTER):
     """Return the number of pixels to the bottom of the 
     frame that the closest contour occupies"""
+    lb, rb = int(640/2-CLEAR_CENTER), int(640/2+CLEAR_CENTER)
+    red_frame = red_frame[:,lb:rb]
     contours, _ = cv2.findContours(red_frame, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     large_contours = [cont for cont in contours if cv2.contourArea(cont) > MIN_CONTOUR_SIZE]
     bottom_y = []
     for cont in large_contours:
-        x,y,w,h = cv2.boundingRect(cont)
-
-        lb, rb = 640/2-CLEAR_CENTER, 640/2+CLEAR_CENTER
-        if not (x+w<lb or x>rb):
-            bottom_y.append(480-(y+h))
+        _,y,_,h = cv2.boundingRect(cont)
+        bottom_y.append(480-(y+h))
     if len(bottom_y) == 0:
         return 480 # max height of frame
     return min(bottom_y)
@@ -336,12 +336,14 @@ def find_book(model, frame, confidence):
     image_height, image_width, _ = image.shape
     
     # select detections that match selected class label and confidence
+    # assumes only 1 person detected
     for detection in detections[0, 0, :, :]:
         det_conf, det_class_id = detection[2], detection[1]
         if det_conf > confidence and det_class_id == 1:
             box_x = detection[3] * image_width
             box_width = detection[5] * image_width
             return box_x + box_width/2
+    return -1
 
 def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
     """Controller for moving to book once detected"""
@@ -369,14 +371,26 @@ def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
 
 def green_filter(frame):
     """Filter frame for just the green ground"""
-    frame = cv2.GaussianBlur(frame,(7,7),0)
-    frame = cv2.fastNlMeansDenoisingColored(frame,None,h=10,hColor=10,templateWindowSize=3,searchWindowSize=11)
+    frame = cv2.GaussianBlur(frame,(7,7),0)[240:, :, :]
+    # frame = cv2.fastNlMeansDenoisingColored(frame,None,h=10,hColor=10,templateWindowSize=3,searchWindowSize=11)
     frame = cv2.GaussianBlur(frame, (7, 7), 0)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # hsv lower and upper bounds of white (works pretty well but needs more testing)
-    lb = (27, 26, 153)
+    lb = (29, 75, 85)
     ub = (60, 255, 255)
 
     green = cv2.inRange(hsv_frame, lb, ub)
     return green
+
+def px_green_from_top(green_filtered_frame):
+    MIN_GREEN_CONTOUR_SIZE = 100
+    contours, _ = cv2.findContours(green_filtered_frame, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    large_contours = [cont for cont in contours if cv2.contourArea(cont) > MIN_GREEN_CONTOUR_SIZE]
+    bottom_y = []
+    for cont in large_contours:
+        _,y,_,_ = cv2.boundingRect(cont)
+        bottom_y.append(y)
+    if len(bottom_y) == 0:
+        return 0
+    return min(bottom_y)
