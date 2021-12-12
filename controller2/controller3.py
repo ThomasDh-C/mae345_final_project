@@ -82,7 +82,7 @@ if check_crazyflie_available():
 
         # --- Find best starting y (align with furthest/ no obstacle) ---
         # Don't have to check l_r as 'safe' starting zone
-        # curr = take_off_slide_left(scf, curr, WIDTH-SAFETY_DISTANCE_TO_SIDE, DEFAULT_VELOCITY*.15, cap, CLEAR_CENTER_LR)
+        curr = take_off_slide_left(scf, curr, WIDTH-SAFETY_DISTANCE_TO_SIDE, DEFAULT_VELOCITY*.15, cap, CLEAR_CENTER_LR)
         obstacles_avoided = 0
         # --- Move forward, move round obstacles, reach kalman end ---
         print(f"Well positioned at x={curr[1]} and ready to move forward")
