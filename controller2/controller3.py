@@ -71,30 +71,19 @@ if check_crazyflie_available():
         # scf = sync_crazyflie obj, cf = crazyflie obj
         cf = scf.cf
         cap = start_video(camera_number)
-        # Couldn't get it be non blocking
-        # viewer = pyglview.Viewer()
-        # def loop():
-        #     ret, frame = cap.read()
-        #     frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-        #     if ret:
-        #         viewer.set_image(frame)
-        # viewer.set_loop(loop)
-        # viewer.start()
-        # print('hi')
         set_pid_controller(cf) # reset now that firmly on the ground
 
         # --- Take off ---
-        curr = takeoff(cf, 0.35)
-        # curr_angle = rotate_to(scf,curr,curr_angle, -90) # right is -90
-        # curr_angle = rotate_to(scf,curr,curr_angle, 0) # zero
-        # curr_angle = rotate_to(scf,curr,curr_angle, 90) # zero
-        # time.sleep(20)
-        
+        curr = takeoff(scf, 0.35)
+        # reset length and widthbased on starting point
+        LENGTH+=curr[0]
+        WIDTH += curr[1]
+
 
         # --- Find best starting y (align with furthest/ no obstacle) ---
         # Don't have to check l_r as 'safe' starting zone
-        curr = take_off_slide_left(scf, curr, WIDTH-SAFETY_DISTANCE_TO_SIDE, DEFAULT_VELOCITY*.15, cap, CLEAR_CENTER_LR)
-        
+        # curr = take_off_slide_left(scf, curr, WIDTH-SAFETY_DISTANCE_TO_SIDE, DEFAULT_VELOCITY*.15, cap, CLEAR_CENTER_LR)
+        obstacles_avoided = 0
         # --- Move forward, move round obstacles, reach kalman end ---
         print(f"Well positioned at x={curr[1]} and ready to move forward")
         while not reached_kalman_end:
@@ -133,13 +122,13 @@ if check_crazyflie_available():
                     for i in range(3):
                         _, frame = time_averaged_frame(cap)
                         red = red_filter(frame) # super accomodating
-                        cv2.imwrite('peek_right.png', frame)
-                        cv2.imwrite('peek_right_red.png', red)
+                        cv2.imwrite(f'imgs/pk_r_{obstacles_avoided}_{i}_.png', frame)
+                        cv2.imwrite(f'imgs/pk_r_{obstacles_avoided}_{i}_r.png', red)
                         dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
                         dists_list.append(dist)
                     dist_right = np.mean(dists_list)
                     print("Dist_right: ", dist_right)
-                    curr_angle = rotate_to(scf, curr, curr_angle, 0)
+                    # curr_angle = rotate_to(scf, curr, curr_angle, 0) # should rotate more smoothly now so no need for these
                 
                 # - (if possible will go left) return center, then peek left -
                 dist_left = 0
@@ -150,17 +139,17 @@ if check_crazyflie_available():
                     for i in range(3):
                         _, frame = time_averaged_frame(cap)
                         red = red_filter(frame) # super accomodating
-                        cv2.imwrite('peek_left.png', frame)
-                        cv2.imwrite('peek_left_red.png', red)
+                        cv2.imwrite(f'imgs/pk_l_{obstacles_avoided}_{i}.png', frame)
+                        cv2.imwrite(f'imgs/pk_l_{obstacles_avoided}_{i}_r.png', red)
                         dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
                         dists_list.append(dist)
-                    dist_right = np.mean(dists_list)
+                    dist_left = np.mean(dists_list)
                     print("Dist_left: ", dist_left)
                     
 
 
                 # - return center -
-                curr_angle = rotate_to(scf, curr, curr_angle, 0)
+                # curr_angle = rotate_to(scf, curr, curr_angle, 0) # should rotate more smoothly now so no need for these
 
                 # - based on measurements determine right or left -
                 curr = pos_estimate(scf)
@@ -177,28 +166,38 @@ if check_crazyflie_available():
                 print(f'Decided to go:', ('left', 'right')[go_right])
                 
                 # - Avoid obstacle by laterally moving -
-                # - 1. rotate in direction of obstacle -
-                curr_angle = rotate_to(scf, curr, curr_angle, (1,-1)[go_right]*90)
-                print('Should have turned to right=-90 or left=90, current angle is',curr_angle)
+                # skip dist check if d is huge 
+                if (go_right and dist_right==480) or (not go_right and dist_left==480):
+                    start_pos = curr
+                    end_y = (WIDTH, 0)[go_right]
+                    end_pos = [curr[0],end_y,curr[2]]
+                    curr = left_right_slide_to_start_point(scf, start_pos, end_pos, DEFAULT_VELOCITY*.2, cap, CLEAR_CENTER_LR, 50)
+                else:
+                    # - 1. rotate in direction of obstacle -
+                    curr_angle = rotate_to(scf, curr, curr_angle, (1,-1)[go_right]*90)
+                    print('Should have turned to right=-90 or left=90, current angle is',curr_angle)
 
-                # - 2. Slide in the safe direction until hit something or hit sides
-                curr = pos_estimate(scf)
-                start_pos = curr
-                print('About to slide to the ', ('left', 'right')[go_right])
-                curr = left_right_slide_to_obs(scf, curr, DEFAULT_VELOCITY*.2, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_TO_SIDE, CLEAR_CENTER, cap, go_right)
-                print('Finished sliding')
-                end_pos = curr
+                    # - 2. Slide in the safe direction until hit something or hit sides
+                    curr = pos_estimate(scf)
+                    start_pos = [curr[0], curr[1], curr[2]] # don't ask me why this is needed but it is
+                    print('start position', start_pos)
+                    print('About to slide to the ', ('left', 'right')[go_right])
+                    curr = left_right_slide_to_obs(scf, curr, DEFAULT_VELOCITY*.2, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_TO_SIDE, CLEAR_CENTER+5, cap, go_right)
+                    print('Finished sliding')
+                    end_pos = curr
 
-                # - 3. Rotate back to straight
-                curr_angle = rotate_to(scf, curr, curr_angle, (1,-1)[go_right]*90) 
+                    # - 3. Rotate back to straight
+                    curr_angle = rotate_to(scf, curr, curr_angle, 0) 
 
-                # - 4. Slide to new starting point like our takeoff move
-                curr = left_right_slide_to_start_point(scf, end_pos, start_pos, DEFAULT_VELOCITY*.2, cap, CLEAR_CENTER_LR, 20)
-            
+                    # - 4. Slide to new starting point like our takeoff move and choose best new point
+                    print('Start pos to find a forward move:', start_pos)
+                    print('End pos to find a forward move:', end_pos)
+                    curr = left_right_slide_to_start_point(scf, end_pos, start_pos, DEFAULT_VELOCITY*.2, cap, CLEAR_CENTER_LR, 50)
+                obstacles_avoided+=1
+
             # -- Check if have reached course end for while loop --
             reached_kalman_end = curr[0] > LENGTH - SAFETY_DISTANCE_TO_END # no obstacles in last 0.5m
-            # if reached_kalman_end: break # TODO: think we can remove this - unnecessary as a while loop!?
-        
+
         # --- fine tune x using green turf ---
         _, frame = time_averaged_frame(cap)
         green = green_filter(frame) # super accomodating

@@ -7,6 +7,7 @@ import cflib.crtp
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncLogger import SyncLogger
 import numpy as np
+from numpy.lib.function_base import angle
 
 ## Some helper functions:
 ## -----------------------------------------------------------------------------------------
@@ -142,6 +143,9 @@ def left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, steps
     xy_grad = np.array(end[0:2]) - np.array(start[0:2])
     xy_dist = np.linalg.norm(xy_grad)
     xy_step, step_t = xy_grad/steps, xy_dist/v/steps
+    print('total_d', xy_dist)
+    print('step size', np.linalg.norm(xy_step))
+    print('xy_step - want neglig_x, neg_y', xy_step)
     start_time = time.time()
     for step_idx in range(1,steps+1):
         # make the move
@@ -165,10 +169,12 @@ def left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, steps
     for _ in range(10):
         cf.commander.send_hover_setpoint(0, 0, 0, z_end)
         time.sleep(0.1)
+
     print('Starting points I found')
-    moving_averaged = moving_average([pos[0] for pos in dist_to_obs_center],4)
+    moving_averaged = moving_average([pos[0] for pos in dist_to_obs_center],7)
     print([int(num) for num in moving_averaged])
-    # find index with max distance
+
+    # find_max_index
     max_dist_index = np.argmax(moving_averaged)
     max_dist_val, best_start_point = dist_to_obs_center[max_dist_index][0], dist_to_obs_center[max_dist_index][1]
     
@@ -252,17 +258,18 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
     dt = .15
     dy = v*dt*(1,-1)[right]
     start_time, c = time.time(), 0
-    while SAFETY_DISTANCE_TO_SIDE < pos_estimate(scf)[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE:
+
+    while (right and curr[1] > SAFETY_DISTANCE_TO_SIDE/4) or (not right and curr[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE/4):
         curr[1]+=dy
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], (1,-1)[right]*90)
-        print('position updated')
+        # print('position updated')
         c+=1
 
         # only stop sliding if get two positive detections
         _, frame = time_averaged_frame(cap)
         red = red_filter(frame) # super accomodating
         dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
-        print('distance is', dist,'and checking against', VERY_CLEAR_PX)
+        # print('distance is', dist,'and checking against', VERY_CLEAR_PX)
         if dist < VERY_CLEAR_PX: 
             for _ in range(10):
                 cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
@@ -283,9 +290,13 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
     for _ in range(20):
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
-    return pos_estimate(scf)
+    est = pos_estimate(scf)
+    # distance = np.linalg.norm(est - np.array(curr))
+    # print('difference that shouldnt exist', distance)
+    return est
 
-def takeoff(cf, height):
+def takeoff(scf, height):
+    cf = scf.cf
     """Drone rises from ground to set height"""
     # Ascend:
     for y in range(5):
@@ -296,7 +307,7 @@ def takeoff(cf, height):
         cf.commander.send_hover_setpoint(0, 0, 0, height)
         time.sleep(0.1)
 
-    return [0, 0, height]
+    return pos_estimate(scf)
 
 def land(cf, curr):
     """Drone falls slowly from current height to ground"""
@@ -353,26 +364,39 @@ def rotate_to(scf, curr, current_angle, new_angle):
     cf = scf.cf
 
     pos_neg = np.sign(current_angle - new_angle)
+    abs_ang_remaining = abs(current_angle - new_angle)
+    if abs_ang_remaining > 30:
+        steps = int(4/90*abs_ang_remaining) # found by testing
+        for i in range(steps):
+            cf.commander.send_hover_setpoint(0, 0, 1.5*pos_neg*90, curr[2])
+            time.sleep(0.1)
+        # print('First part of rotate')
+        for yawr in np.linspace(pos_neg*90, 0, 5):
+            cf.commander.send_hover_setpoint(0, 0, yawr, curr[2])
+            time.sleep(0.1)
+        cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+    # else:
+        # print('Started within 30 of rotation set point so skipping first part of rotate')
 
-    for i in range(6):
-        cf.commander.send_hover_setpoint(0, 0, pos_neg*90, curr[2])
-        time.sleep(0.1)
-    print('first part of rotate')
-    for yawr in np.linspace(pos_neg*90, 0, 5):
-        cf.commander.send_hover_setpoint(0, 0, yawr, curr[2])
-        time.sleep(0.1)
-    cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
-
-    print('second part of yaw rate')
-    for i in np.linspace(angle_estimate(scf), new_angle, 5):
+    # print('Second part of yaw rate')
+    for i in np.linspace(angle_estimate(scf), new_angle, 10):
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], i)
-        time.sleep(0.2)
+        time.sleep(0.15)
 
-    print('end of rotation now hovering')
+    # print('end of rotation now hovering')
     for _ in range(10):
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
     return angle_estimate(scf)
+
+def test_rotate(scf, curr, curr_angle):
+    "right, zero, left, right"
+    curr_angle = rotate_to(scf,curr,curr_angle, -90) # right is -90
+    curr_angle = rotate_to(scf,curr,curr_angle, 0) # zero
+    curr_angle = rotate_to(scf,curr,curr_angle, 90) # left is 90
+    curr_angle = rotate_to(scf,curr,curr_angle, -90) # right is 90 ... should go smoothly turn through the centre
+    time.sleep(20) # stop during here
+    return curr_angle
 
 def find_book(model, frame, confidence):
     """Finds x coordinate of person taped to book in frame"""
