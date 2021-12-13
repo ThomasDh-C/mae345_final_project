@@ -135,14 +135,14 @@ def relative_move(scf, start, dx, v, big_move):
     end = [start[0]+dx[0], start[1]+dx[1], start[2]+dx[2]]
     return move_to_setpoint(scf, start, end, v, big_move)
     
-def left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, steps):
+def left_right_slide_to_start_point(scf, start, end, v_first_slide, v_to_final, cap, CLEAR_CENTER, steps):
     cf, dist_to_obs_center = scf.cf, []
 
     # move along x,y
     z_start, z_end = start[2], end[2] # we update both these to - table height if we go over a table
     xy_grad = np.array(end[0:2]) - np.array(start[0:2])
     xy_dist = np.linalg.norm(xy_grad)
-    xy_step, step_t = xy_grad/steps, xy_dist/v/steps
+    xy_step, step_t = xy_grad/steps, xy_dist/v_first_slide/steps
     print('total_d', xy_dist)
     print('step size', np.linalg.norm(xy_step))
     print('xy_step - want neglig_x, neg_y', xy_step)
@@ -157,11 +157,9 @@ def left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, steps
         curr = pos_estimate(scf)
         _, frame = time_averaged_frame(cap)
         red = red_filter(frame) # super accomodating
-        # lb, rb = int(640/2-CLEAR_CENTER), int(640/2+CLEAR_CENTER)
-        # cv2.imwrite(f'init_{step_idx}.png', red[:,lb:rb])
         dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
         red_pos_time = time.time()
-        curr_pos_step = (red_pos_time-curr_pos_time)*v*xy_grad/xy_dist
+        curr_pos_step = (red_pos_time-curr_pos_time)*v_first_slide*xy_grad/xy_dist
         dist_to_obs_center.append((dist_center_obs, [curr[0]+curr_pos_step[0],curr[1]+curr_pos_step[1], curr[2]]))
         while time.time()<step_t*step_idx+start_time:
             continue
@@ -172,6 +170,9 @@ def left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, steps
 
     print('Starting points I found')
     moving_averaged = moving_average([pos[0] for pos in dist_to_obs_center],7)
+    moving_averaged = moving_average(moving_averaged, 3)
+    moving_averaged = moving_average(moving_averaged, 3)
+    moving_averaged = moving_average(moving_averaged, 3)
     print([int(num) for num in moving_averaged])
 
     # find_max_index
@@ -207,13 +208,13 @@ def left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, steps
             best_start_point = dist_to_obs_center[int(max_group_centre_idx)][1]
 
     curr = pos_estimate(scf)
-    return move_to_setpoint(scf, curr, best_start_point, v, True)
+    return move_to_setpoint(scf, curr, best_start_point, v_to_final, True)
 
-def take_off_slide_left(scf, curr, WIDTH, v, cap, CLEAR_CENTER):
+def take_off_slide_left(scf, curr, width, v_first_slide, v_to_final, cap, CLEAR_CENTER):
     """Slides drone to the left, then positions drone where it 
     can see the furthest without being blocked by red"""  
-    start, end = curr, [curr[0], WIDTH, curr[2]]
-    return left_right_slide_to_start_point(scf, start, end, v, cap, CLEAR_CENTER, 80)
+    start, end = curr, [curr[0], width, curr[2]]
+    return left_right_slide_to_start_point(scf, start, end, v_first_slide, v_to_final, cap, CLEAR_CENTER, 60)
 
 def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
     """Slide forward till a red object is too close for a fast move"""
@@ -294,6 +295,56 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
     # distance = np.linalg.norm(est - np.array(curr))
     # print('difference that shouldnt exist', distance)
     return est
+
+
+def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_DX):
+    cf = scf.cf
+
+    # Take first frame
+    _, frame = time_averaged_frame(cap)
+    green = green_filter(frame) # super accomodating
+    _, green_from_top, _, _ = cv2.boundingRect(green)
+
+    # Set up moving average
+    green_list, c = [green_from_top]*10, 0 # moving average
+    print(c, ' green from top', green_from_top)
+
+    while abs(np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) > GREEN_MARGIN or max(green_list)-min(green_list) > GREEN_MARGIN*2:
+        c+=1
+        
+        # make move
+        forwards = (np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) < 0
+        steps = 10
+        x_dist = forwards*GREEN_DX
+        x_step, t = x_dist/steps, abs(x_dist/v/steps)
+        # if mean is too large then make move
+        if abs(np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) > GREEN_MARGIN:
+            for _ in range(1,steps+1):
+                curr[0]+=x_step
+                cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+                time.sleep(t)
+        # fine tuning
+        else:
+            for _ in range(1,steps+1):
+                cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+                time.sleep(0.05)
+
+        _, frame = time_averaged_frame(cap)
+        green = green_filter(frame) # super accomodating
+
+        # cv2.imwrite(f'imgs/green_raw_{c}.png', frame)
+        # cv2.imwrite(f'imgs/green_{c}.png', green)
+        x, green_from_top, w, h = cv2.boundingRect(green)
+        green_list.append(green_from_top)
+        green_list.pop(0)
+        print(c, ' green from top', np.mean(green_list))
+    
+    # stabilise
+    for _ in range(20):
+        cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+        time.sleep(0.1)
+
+    return pos_estimate(scf)
 
 def takeoff(scf, height):
     cf = scf.cf
