@@ -530,7 +530,7 @@ def px_green_from_top(green_filtered_frame):
 def slide_to_book(scf, curr, v, WIDTH, SAFETY, cap, model, confidence):
     """Slide until Roger is centered in the camera frame
     """
-    BOOK_CLEAR_CENTER = 7 # Roger should be in the middle pixels, TODO: tune
+    BOOK_CLEAR_CENTER = 4 # Roger should be in the middle pixels, TODO: tune
     IMWIDTH = 640
     going_left = True
     cf = scf.cf
