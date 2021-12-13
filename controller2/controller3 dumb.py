@@ -13,7 +13,7 @@ from helperfunctions import *
 
 # important constants
 group_number = 12
-camera_number = 0 # 1 for Thomas, 0 for Jacob
+camera_number = 1 # 1 for Thomas, 0 for Jacob
 tracking_label = 1              # person COCO dataset
 confidence = 0.3                # confidence of detection
 
@@ -94,7 +94,7 @@ if check_crazyflie_available():
         while not reached_kalman_end:
             # -- Find distance to closest obstacle 5 times for reliability --
             obj_distance = []
-            for i in range(5):            
+            for i in range(3):            
                 _, frame = time_averaged_frame(cap)
                 red = red_filter(frame) # super accomodating
                 dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER)
@@ -120,91 +120,47 @@ if check_crazyflie_available():
                 curr = pos_estimate(scf)
 
                 if has_checked_left and has_checked_right:
+                    has_checked_left, has_checked_right = False, False
                     print("We have to go back - back to the future!")
                     curr = relative_move(scf, curr, [-0.4, 0, 0], DEFAULT_VELOCITY*.4, True)
                 
-                # - (if possible will go right) peek right -
-                dist_right = 0
-                if not curr[1] < SAFETY_DISTANCE_TO_END:
-                    print("Peeking right")
-                    has_checked_right = True
-                    dists_list = []
-                    curr_angle = rotate_to(scf, curr, curr_angle, -90)
-                    for i in range(3):
-                        _, frame = time_averaged_frame(cap)
-                        red = red_filter(frame) # super accomodating
-                        # cv2.imwrite(f'imgs/pk_r_{obstacles_avoided}_{i}_.png', frame)
-                        # cv2.imwrite(f'imgs/pk_r_{obstacles_avoided}_{i}_r.png', red)
-                        dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
-                        dists_list.append(dist)
-                    dist_right = np.mean(dists_list)
-                    print("Dist_right: ", dist_right)
-                    
-                # - (if possible will go left) return center, then peek left -
-                dist_left = 0
-                if not curr[1] > WIDTH - SAFETY_DISTANCE_TO_SIDE:
-                    print("Peeking left")
-                    has_checked_left = True
-                    curr_angle = rotate_to(scf, curr, curr_angle, 90)
-                    dists_list = []
-                    for i in range(3):
-                        _, frame = time_averaged_frame(cap)
-                        red = red_filter(frame) # super accomodating
-                        # cv2.imwrite(f'imgs/pk_l_{obstacles_avoided}_{i}.png', frame)
-                        # cv2.imwrite(f'imgs/pk_l_{obstacles_avoided}_{i}_r.png', red)
-                        dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
-                        dists_list.append(dist)
-                    dist_left = np.mean(dists_list)
-                    print("Dist_left: ", dist_left)
-                    
-
-                # - based on measurements determine right or left -
-                curr = pos_estimate(scf)
+                # - go right unless: in right half or -
                 go_right = True
-                # don't go right if super close to right edge               
-                if curr[1] < SAFETY_DISTANCE_TO_SIDE/3:
-                    go_right=False
-                # don't go right if significantly better to go left
-                elif dist_left > dist_right and curr[1] > WIDTH-SAFETY_DISTANCE_TO_SIDE/3:
-                    go_right=False
-                # don't go right if right is blocked ... duh
-                elif dist_right <= SAFETY_PX_TO_OBJ:
+                if curr[1] - WIDTH/2 > 0:
                     go_right = False
-                print(f'Decided to go:', ('left', 'right')[go_right])
+                if has_checked_left:
+                    go_right = True
+                if has_checked_right:
+                    go_right = False
+
                 
-                # - Avoid obstacle by laterally moving -
-                # skip dist check if d is huge 
-                if (go_right and dist_right>400) or (not go_right and dist_left>400):
-                    start_pos = curr
-                    end_y = (WIDTH-SAFETY_DISTANCE_TO_SIDE/3, SAFETY_DISTANCE_TO_SIDE/3)[go_right]
-                    end_pos = [curr[0],end_y,curr[2]]
-                    if abs(curr_angle-(1,-1)[go_right]*90)>20:
-                        curr_angle = rotate_to(scf, curr, curr_angle, (1,-1)[go_right]*90)
-                    curr = left_right_slide_to_start_point(scf, start_pos, end_pos, DEFAULT_VELOCITY*.2, DEFAULT_VELOCITY*.5, cap, CLEAR_CENTER_LR, 50)
+                # set flags
+                if go_right:
+                    has_checked_right = True
                 else:
-                    # - 1. rotate in direction of obstacle -
-                    # only rotate if wrong agnle
-                    if abs(curr_angle-(1,-1)[go_right]*90)>20:
-                        curr_angle = rotate_to(scf, curr, curr_angle, (1,-1)[go_right]*90)
-                    print('Should have turned to right=-90 or left=90, current angle is',curr_angle)
+                    has_checked_left = True
 
-                    # - 2. Slide in the safe direction until hit something or hit sides
-                    curr = pos_estimate(scf)
-                    start_pos = [curr[0], curr[1], curr[2]] # don't ask me why this is needed but it is
-                    print('About to slide to the ', ('left', 'right')[go_right])
-                    curr = left_right_slide_to_obs(scf, curr, DEFAULT_VELOCITY*.2, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_TO_SIDE, CLEAR_CENTER+5, cap, go_right)
-                    print('Finished sliding')
-                    end_pos = curr
+                # - 1. rotate in direciton of slide
+                curr_angle = rotate_to(scf, curr, curr_angle, (1,-1)[go_right]*90)
+                print('Should have turned to right=-90 or left=90, current angle is',curr_angle)
 
-                    # - 3. Rotate back to straight
-                    curr_angle = rotate_to(scf, curr, curr_angle, 0) 
+                # - 2. Slide in the safe direction until hit something or hit sides
+                curr = pos_estimate(scf)
+                start_pos = [curr[0], curr[1], curr[2]] # don't ask me why this is needed but it is
+                print('About to slide to the ', ('left', 'right')[go_right])
+                curr = left_right_slide_to_obs(scf, curr, DEFAULT_VELOCITY*.2, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_TO_SIDE, CLEAR_CENTER+5, cap, go_right)
+                print('Finished sliding')
+                end_pos = curr
 
-                    # - 4. Slide to new starting point like our takeoff move and choose best new point ... unless distance currently is 480 ... in which case yeet forwards
-                    # _, frame = time_averaged_frame(cap)
-                    # red = red_filter(frame) # super accomodating
-                    # dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
-                    # print('Distance on extreme of move:', dist_center_obs)
-                    # if dist_center_obs < 300:
+                # - 3. Rotate back to straight
+                curr_angle = rotate_to(scf, curr, curr_angle, 0) 
+
+                # - 4. Slide to new starting point like our takeoff move and choose best new point ... unless distance currently is 480 ... in which case yeet forwards
+                _, frame = time_averaged_frame(cap)
+                red = red_filter(frame) # super accomodating
+                dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
+                print('Distance on extreme of move:', dist_center_obs)
+                if dist_center_obs < 300:
                     curr = left_right_slide_to_start_point(scf, end_pos, start_pos, DEFAULT_VELOCITY*.2, DEFAULT_VELOCITY*.5, cap, CLEAR_CENTER_LR, 50)
                 
 

@@ -214,7 +214,7 @@ def take_off_slide_left(scf, curr, width, v_first_slide, v_to_final, cap, CLEAR_
     """Slides drone to the left, then positions drone where it 
     can see the furthest without being blocked by red"""  
     start, end = curr, [curr[0], width, curr[2]]
-    return left_right_slide_to_start_point(scf, start, end, v_first_slide, v_to_final, cap, CLEAR_CENTER, 60)
+    return left_right_slide_to_start_point(scf, start, end, v_first_slide, v_to_final, cap, CLEAR_CENTER, 70)
 
 def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
     """Slide forward till a red object is too close for a fast move"""
@@ -261,7 +261,7 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
     dy = v*dt*(1,-1)[right]
     start_time, c = time.time(), 0
 
-    while (right and curr[1] > SAFETY_DISTANCE_TO_SIDE/4) or (not right and curr[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE/4):
+    while (right and curr[1] > SAFETY_DISTANCE_TO_SIDE/5) or (not right and curr[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE/3):
         curr[1]+=dy
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], (1,-1)[right]*90)
         # print('position updated')
@@ -289,7 +289,7 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
             continue
     
     # stabilise
-    for _ in range(20):
+    for _ in range(10):
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
     est = pos_estimate(scf)
@@ -420,12 +420,20 @@ def rotate_to(scf, curr, current_angle, new_angle):
     pos_neg = np.sign(current_angle - new_angle)
     abs_ang_remaining = abs(current_angle - new_angle)
     if abs_ang_remaining > 30:
-        steps = int(4/90*abs_ang_remaining) # found by testing
-        for i in range(steps):
-            cf.commander.send_hover_setpoint(0, 0, 1.5*pos_neg*90, curr[2])
+        cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+        pace = 1.5*pos_neg*90
+        
+        for yawr in np.linspace(0, pace, 5):
+            cf.commander.send_hover_setpoint(0, 0, yawr, curr[2])
             time.sleep(0.1)
+
+        steps = int(10/90*abs_ang_remaining) # found by testing
+        print(steps)
+        for i in range(steps):
+            cf.commander.send_hover_setpoint(0, 0, pace, curr[2])
+            time.sleep(0.025)
         # print('First part of rotate')
-        for yawr in np.linspace(pos_neg*90, 0, 5):
+        for yawr in np.linspace(pace, 0, 5):
             cf.commander.send_hover_setpoint(0, 0, yawr, curr[2])
             time.sleep(0.1)
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
@@ -433,12 +441,13 @@ def rotate_to(scf, curr, current_angle, new_angle):
         # print('Started within 30 of rotation set point so skipping first part of rotate')
 
     # print('Second part of yaw rate')
+
     for i in np.linspace(angle_estimate(scf), new_angle, 10):
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], i)
         time.sleep(0.15)
 
     # print('end of rotation now hovering')
-    for _ in range(10):
+    for _ in range(5):
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
     return angle_estimate(scf)
@@ -449,6 +458,9 @@ def test_rotate(scf, curr, curr_angle):
     curr_angle = rotate_to(scf,curr,curr_angle, 0) # zero
     curr_angle = rotate_to(scf,curr,curr_angle, 90) # left is 90
     curr_angle = rotate_to(scf,curr,curr_angle, -90) # right is 90 ... should go smoothly turn through the centre
+    curr_angle = rotate_to(scf,curr,curr_angle, 90) # left is 90 ... should go smoothly turn through the centre
+    curr_angle = rotate_to(scf,curr,curr_angle, -90) # right is 90 ... should go smoothly turn through the centre
+    
     time.sleep(20) # stop during here
     return curr_angle
 
