@@ -240,7 +240,8 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
             red = red_filter(frame) # super accomodating
             dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
             if dist < VERY_CLEAR_PX: 
-                cv2.imwrite(f'imgs/very_clear_frame.png', red)
+                cv2.imwrite(f'imgs/very_clear_frame_raw.png', frame)
+                cv2.imwrite(f'imgs/very_clear_frame_filtered.png', red)
                 break
 
         while time.time()<dt*c+start_time:
@@ -303,17 +304,18 @@ def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_D
     # Take first frame
     _, frame = time_averaged_frame(cap)
     green = green_filter(frame) # super accomodating
-    _, green_from_top, _, _ = cv2.boundingRect(green)
+    # _, green_from_top, _, _ = cv2.boundingRect(green)
+    green_from_top = px_green_from_top(green)
 
     # Set up moving average
-    green_list, c = [green_from_top]*10, 0 # moving average
+    green_list, c = [green_from_top]*8, 0 # moving average, tuned from 10
     print(c, ' green from top', green_from_top)
 
     while abs(np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) > GREEN_MARGIN or max(green_list)-min(green_list) > GREEN_MARGIN*2:
         c+=1
         
         # make move
-        forwards = (np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) < 0
+        forwards = (-1, 1)[np.mean(green_list) < GREEN_PX_TOP_BOT_IDEAL]
         steps = 10
         x_dist = forwards*GREEN_DX
         x_step, t = x_dist/steps, abs(x_dist/v/steps)
@@ -334,7 +336,8 @@ def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_D
 
         # cv2.imwrite(f'imgs/green_raw_{c}.png', frame)
         # cv2.imwrite(f'imgs/green_{c}.png', green)
-        x, green_from_top, w, h = cv2.boundingRect(green)
+        # x, green_from_top, w, h = cv2.boundingRect(green)
+        green_from_top = px_green_from_top(green)
         green_list.append(green_from_top)
         green_list.pop(0)
         print(c, ' green from top', np.mean(green_list))
@@ -497,7 +500,10 @@ def move_to_book(cf, box_x, box_y, box_width, box_height, x_cur, y_cur):
 
 def green_filter(frame):
     """Filter frame for just the green ground"""
-    frame = cv2.GaussianBlur(frame,(7,7),0)[240:, :, :]
+    IMWIDTH = 640
+    GREENPXBUFFER = 40
+    # Crop to the lower half, then to the center of that
+    frame = cv2.GaussianBlur(frame,(7,7),0)[240:, (IMWIDTH//2)-GREENPXBUFFER:(IMWIDTH//2)+GREENPXBUFFER, :]
     # frame = cv2.fastNlMeansDenoisingColored(frame,None,h=10,hColor=10,templateWindowSize=3,searchWindowSize=11)
     frame = cv2.GaussianBlur(frame, (7, 7), 0)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -510,7 +516,7 @@ def green_filter(frame):
     return green
 
 def px_green_from_top(green_filtered_frame):
-    MIN_GREEN_CONTOUR_SIZE = 100
+    MIN_GREEN_CONTOUR_SIZE = 40.0
     contours, _ = cv2.findContours(green_filtered_frame, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     large_contours = [cont for cont in contours if cv2.contourArea(cont) > MIN_GREEN_CONTOUR_SIZE]
     bottom_y = []
@@ -520,3 +526,43 @@ def px_green_from_top(green_filtered_frame):
     if len(bottom_y) == 0:
         return 0
     return min(bottom_y)
+
+def slide_to_book(scf, curr, v, WIDTH, SAFETY, cap, model, confidence):
+    """Slide until Roger is centered in the camera frame
+    """
+    BOOK_CLEAR_CENTER = 7 # Roger should be in the middle pixels, TODO: tune
+    IMWIDTH = 640
+    going_left = True
+    cf = scf.cf
+    dt = 0.15
+    
+    book_x = 0
+    start_time , time_index = time.time(), 0
+    # TODO: make this while True and only break when we find Roger?
+    while (going_left and curr[1] < WIDTH-SAFETY/4) or (not going_left and curr[1] > SAFETY/4):
+        # position update
+        dy = v*dt*(-1, 1)[going_left]
+        curr[1] += dy
+        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+        time_index += 1
+
+        # Now look for the book
+        _, frame = time_averaged_frame(cap)
+        book_x = find_book(model, frame, confidence)
+        if ((IMWIDTH//2)-BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+BOOK_CLEAR_CENTER):
+            break
+
+        # sus time.sleep()?
+        while time.time() < dt*time_index+start_time:
+            continue
+
+        # update going_left if reaching a boundary
+        if (going_left and curr[1] >= WIDTH-SAFETY) or (not going_left and curr[1] <= SAFETY):
+            going_left = not going_left
+
+    # stabilize
+    for _ in range(20):
+        cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+        time.sleep(0.1)
+
+    return pos_estimate(scf)

@@ -13,7 +13,7 @@ from helperfunctions import *
 
 # important constants
 group_number = 12
-camera_number = 1 #0 on jacobs
+camera_number = 0 # 1 for Thomas, 0 for Jacob
 tracking_label = 1              # person COCO dataset
 confidence = 0.3                # confidence of detection
 
@@ -26,16 +26,16 @@ GREEN_DX = 0.01
 BIG_DY = 0.4
 SMALL_DY = 0.2
 DY = 0.2
-VERY_CLEAR_PX = 55
-SAFETY_PX_TO_OBJ = 38
+VERY_CLEAR_PX = 57 # tuned from 55
+SAFETY_PX_TO_OBJ = 38 # tuned from 38
 
 SAFETY_DISTANCE_TO_SIDE = .3
 SAFETY_DISTANCE_TO_END = 0.05 # reduce later when write whte line detect
 L_VS_R = 2 #px
 BOOK_MARGIN_PX = 20
 WIDTH = 1.32
-LENGTH = 2.7 
-CLEAR_CENTER = 60 # pixel column clear to end needed
+LENGTH = 2.75 # tuned up from 2.7 since consistently undershoots 
+CLEAR_CENTER = 70 # pixel column clear to end needed, tuned from 60
 CLEAR_CENTER_LR = 20 # pixels
 GREEN_MARGIN = 5
 GREEN_PX_TOP_BOT_IDEAL = 95
@@ -76,6 +76,7 @@ if check_crazyflie_available():
         # --- Take off ---
         curr = takeoff(scf, 0.35)
         # reset length and widthbased on starting point
+        # TODO: does this actually do anything since LENGTH and WIDTH are constants?
         LENGTH+=curr[0]
         WIDTH += curr[1]
 
@@ -196,7 +197,12 @@ if check_crazyflie_available():
             # -- Check if have reached course end for while loop --
             reached_kalman_end = curr[0] > LENGTH - SAFETY_DISTANCE_TO_END # no obstacles in last 0.5m
 
+        print("Made it to the end of the course, moving to the right side of the course")
+        # move to the right side of the course for consistent green measurement
+        curr = relative_move(scf, curr, [0, -curr[1] + SAFETY_DISTANCE_TO_SIDE/4, 0], DEFAULT_VELOCITY*.2, True)
+
         # --- fine tune x using green turf ---
+        print("Dialing in on the green...")
         curr = slide_green(scf, curr, cap, DEFAULT_VELOCITY/3, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_DX)
         # _, frame = time_averaged_frame(cap)
         # green = green_filter(frame) # super accomodating
@@ -223,27 +229,30 @@ if check_crazyflie_available():
         # --- end of the obstacles - up to table height ----
         curr = relative_move(scf, curr, [0,0,0.5], .1, True)
         
+        # move to the book
+        curr = slide_to_book(scf, curr, DEFAULT_VELOCITY*0.2, WIDTH, SAFETY_DISTANCE_TO_SIDE, cap, model, confidence)
 
+        # 12/12, 8:47 commented out code below
         # --- centre book in frame ---
-        in_left_half = (curr[1] - WIDTH/2) > 0
-        go_left = not in_left_half
-        while True:
-            ret, frame = time_averaged_frame(cap)
-            # left of frame is 0 line
-            book_center_px = find_book(model, frame, confidence)
-            if ret and book_center_px != -1:
-                if np.linalg.norm(book_center_px-320) < BOOK_MARGIN_PX:
-                    break # Success!!!
-                # in left half frame - move left
-                elif book_center_px-320 < 0:
-                    curr = relative_move(scf, curr, [0, DY/2, 0], DEFAULT_VELOCITY, False)
-                else:
-                    curr = relative_move(scf, curr, [0, -DY/2, 0], DEFAULT_VELOCITY, False)
-            else:
-                if go_left and (curr[1] - WIDTH) > -SAFETY_DISTANCE_TO_SIDE:
-                    go_left=False
-                if (not go_left) and curr[1] < SAFETY_DISTANCE_TO_SIDE:
-                    go_left = True
-                curr = relative_move(scf, curr, [0, go_left*DY, 0], DEFAULT_VELOCITY, False)
+        # in_left_half = (curr[1] - WIDTH/2) > 0
+        # go_left = not in_left_half
+        # while True:
+        #     ret, frame = time_averaged_frame(cap)
+        #     # left of frame is 0 line
+        #     book_center_px = find_book(model, frame, confidence)
+        #     if ret and book_center_px != -1:
+        #         if np.linalg.norm(book_center_px-320) < BOOK_MARGIN_PX:
+        #             break # Success!!!
+        #         # in left half frame - move left
+        #         elif book_center_px-320 < 0:
+        #             curr = relative_move(scf, curr, [0, DY/2, 0], DEFAULT_VELOCITY, False)
+        #         else:
+        #             curr = relative_move(scf, curr, [0, -DY/2, 0], DEFAULT_VELOCITY, False)
+        #     else:
+        #         if go_left and (curr[1] - WIDTH) > -SAFETY_DISTANCE_TO_SIDE:
+        #             go_left=False
+        #         if (not go_left) and curr[1] < SAFETY_DISTANCE_TO_SIDE:
+        #             go_left = True
+        #         curr = relative_move(scf, curr, [0, go_left*DY, 0], DEFAULT_VELOCITY, False)
 
         land(cf, curr)
