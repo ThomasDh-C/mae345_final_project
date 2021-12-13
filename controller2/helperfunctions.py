@@ -171,8 +171,6 @@ def left_right_slide_to_start_point(scf, start, end, v_first_slide, v_to_final, 
     print('Starting points I found')
     moving_averaged = moving_average([pos[0] for pos in dist_to_obs_center],7)
     moving_averaged = moving_average(moving_averaged, 3)
-    moving_averaged = moving_average(moving_averaged, 3)
-    moving_averaged = moving_average(moving_averaged, 3)
     print([int(num) for num in moving_averaged])
 
     # find_max_index
@@ -251,6 +249,7 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
     for _ in range(20):
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
+    print('Forward slide finished, getting position estimate')
     return pos_estimate(scf)
 
 def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_TO_SIDE, CLEAR_CENTER, cap, right):
@@ -261,7 +260,7 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
     dy = v*dt*(1,-1)[right]
     start_time, c = time.time(), 0
 
-    while (right and curr[1] > SAFETY_DISTANCE_TO_SIDE/5) or (not right and curr[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE/3):
+    while (right and curr[1] > SAFETY_DISTANCE_TO_SIDE/5) or (not right and curr[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE/5):
         curr[1]+=dy
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], (1,-1)[right]*90)
         # print('position updated')
@@ -293,8 +292,6 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
         cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
         time.sleep(0.1)
     est = pos_estimate(scf)
-    # distance = np.linalg.norm(est - np.array(curr))
-    # print('difference that shouldnt exist', distance)
     return est
 
 
@@ -304,7 +301,6 @@ def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_D
     # Take first frame
     _, frame = time_averaged_frame(cap)
     green = green_filter(frame) # super accomodating
-    # _, green_from_top, _, _ = cv2.boundingRect(green)
     green_from_top = px_green_from_top(green)
 
     # Set up moving average
@@ -334,9 +330,6 @@ def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_D
         _, frame = time_averaged_frame(cap)
         green = green_filter(frame) # super accomodating
 
-        # cv2.imwrite(f'imgs/green_raw_{c}.png', frame)
-        # cv2.imwrite(f'imgs/green_{c}.png', green)
-        # x, green_from_top, w, h = cv2.boundingRect(green)
         green_from_top = px_green_from_top(green)
         green_list.append(green_from_top)
         green_list.pop(0)
@@ -516,7 +509,6 @@ def green_filter(frame):
     GREENPXBUFFER = 40
     # Crop to the lower half, then to the center of that
     frame = cv2.GaussianBlur(frame,(7,7),0)[240:, (IMWIDTH//2)-GREENPXBUFFER:(IMWIDTH//2)+GREENPXBUFFER, :]
-    # frame = cv2.fastNlMeansDenoisingColored(frame,None,h=10,hColor=10,templateWindowSize=3,searchWindowSize=11)
     frame = cv2.GaussianBlur(frame, (7, 7), 0)
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -542,53 +534,47 @@ def px_green_from_top(green_filtered_frame):
 def slide_to_book(scf, curr, v, WIDTH, SAFETY, cap, model, confidence):
     """Slide until Roger is centered in the camera frame
     """
-    BOOK_CLEAR_CENTER = 4 # Roger should be in the middle pixels, TODO: tune
+    
+    BOOK_CLEAR_CENTER = 5 # Roger should be in the middle pixels, TODO: tuned up from 4
     IMWIDTH = 640
     going_left = True
     cf = scf.cf
     dt = 0.15
+    og_v = v
     
     book_x = 0
-    start_time , time_index = time.time(), 0
-    # TODO: make this while True and only break when we find Roger?
     while (going_left and curr[1] < WIDTH-SAFETY/4) or (not going_left and curr[1] > SAFETY/4):
-        # position update
-        dy = v*dt*(-1, 1)[going_left]
-        curr[1] += dy
-        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
-        time_index += 1
-
+        
         # Now look for the book
         _, frame = time_averaged_frame(cap)
         book_x = find_book(model, frame, confidence)
-        if ((IMWIDTH//2)-BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+BOOK_CLEAR_CENTER):
-            print("Found Roger once")
-            # stabilize
-            curr = pos_estimate(scf)
-            for _ in range(20):
-                print("Hovering once seen Roger")
-                cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
-                time.sleep(0.1)
-            
+
+        while abs(book_x-IMWIDTH/2) < 30 and ((going_left and curr[1] < WIDTH-SAFETY/4) or (not going_left and curr[1] > SAFETY/4)):
+            print('large found book')
             _, frame = time_averaged_frame(cap)
             book_x = find_book(model, frame, confidence)
 
-            if (IMWIDTH//2)-5*BOOK_CLEAR_CENTER < book_x <(IMWIDTH//2)-BOOK_CLEAR_CENTER:
-                print("Roger to the left!")
-                curr = relative_move(scf, curr, [0, 0.04, 0], 0.1, False)
-                break
-            if (IMWIDTH//2)+BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+5*BOOK_CLEAR_CENTER:
-                print("Roger to the right!")
-                curr = relative_move(scf, curr, [0, -0.04, 0], 0.1, False)
-                break
-            
-            if ((IMWIDTH//2)-BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+BOOK_CLEAR_CENTER):
-                print("Found Roger twice!")
-                break
+            # calculate new position constants as needed
+            v = og_v/2
+            inside_l = book_x-IMWIDTH/2 < 0
+            dy = v*dt*(-1, 1)[inside_l]
 
-        # sus time.sleep()?
-        while time.time() < dt*time_index+start_time:
-            continue
+            # if in the center of the centered frame
+            if IMWIDTH/2-BOOK_CLEAR_CENTER < book_x < IMWIDTH/2+BOOK_CLEAR_CENTER:
+                print("Found Roger once")
+                return pos_estimate(scf)
+
+            curr[1] += dy
+            cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+            time.sleep(dt)
+
+        
+        # speedy position update
+        dy = og_v*dt*(-1, 1)[going_left]
+        curr[1] += dy
+        cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+
+        time.sleep(dt)
 
         # update going_left if reaching a boundary
         if (going_left and curr[1] >= WIDTH-SAFETY/2) or (not going_left and curr[1] <= SAFETY/2):

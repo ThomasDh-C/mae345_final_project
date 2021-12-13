@@ -27,7 +27,7 @@ BIG_DY = 0.4
 SMALL_DY = 0.2
 DY = 0.2
 VERY_CLEAR_PX = 55 # tuned from 55
-SAFETY_PX_TO_OBJ = 33 # tuned from 38
+SAFETY_PX_TO_OBJ = 30 # tuned from 38
 
 SAFETY_DISTANCE_TO_SIDE = .3
 SAFETY_DISTANCE_TO_END = 0.05 # reduce later when write whte line detect
@@ -35,10 +35,10 @@ L_VS_R = 2 #px
 BOOK_MARGIN_PX = 20
 WIDTH = 1.32
 LENGTH = 2.75 # tuned up from 2.7 since consistently undershoots 
-CLEAR_CENTER = 60 # pixel column clear to end needed, tuned from 58
+CLEAR_CENTER = 58 # pixel column clear to end needed, tuned from 58
 CLEAR_CENTER_LR = 20 # pixels
 GREEN_MARGIN = 5
-GREEN_PX_TOP_BOT_IDEAL = 110 # tune up to get closer, down to get further
+GREEN_PX_TOP_BOT_IDEAL = 105 # tune up to get closer, down to get further, jacob ideal = 110, thomas ideal = 105
 
 # load the DNN model
 model = cv2.dnn.readNet(model='Lab9_Supplement/frozen_inference_graph.pb',
@@ -80,9 +80,6 @@ if check_crazyflie_available():
         LENGTH+=curr[0]
         WIDTH += curr[1]
 
-        # curr_angle = test_rotate(scf, curr, curr_angle)
-
-
         # --- Find best starting y (align with furthest/ no obstacle) ---
         # Don't have to check l_r as 'safe' starting zone
         curr = take_off_slide_left(scf, curr, WIDTH, DEFAULT_VELOCITY*.15, DEFAULT_VELOCITY*.75, cap, CLEAR_CENTER_LR)
@@ -105,7 +102,6 @@ if check_crazyflie_available():
             if np.mean(obj_distance) > VERY_CLEAR_PX:
                 print("\tSo, making a forward slide")
                 curr = forward_slide_to_obs(scf, curr, DEFAULT_VELOCITY*.2, VERY_CLEAR_PX, LENGTH - SAFETY_DISTANCE_TO_END, CLEAR_CENTER, cap)
-                # curr = relative_move(scf, curr, [BIG_DX, 0, 0], DEFAULT_VELOCITY, True)
             # -- Make a small jump if obstacle is far/ non-existent --
             elif np.mean(obj_distance) > SAFETY_PX_TO_OBJ:
                 print("\tSo, making a small jump")
@@ -160,8 +156,8 @@ if check_crazyflie_available():
                 red = red_filter(frame) # super accomodating
                 dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
                 print('Distance on extreme of move:', dist_center_obs)
-                if dist_center_obs < 300:
-                    curr = left_right_slide_to_start_point(scf, end_pos, start_pos, DEFAULT_VELOCITY*.2, DEFAULT_VELOCITY*.5, cap, CLEAR_CENTER_LR, 50)
+                if dist_center_obs < 150:
+                    curr = left_right_slide_to_start_point(scf, end_pos, start_pos, DEFAULT_VELOCITY*.4, DEFAULT_VELOCITY*.5, cap, CLEAR_CENTER_LR, 50)
                 
 
             # -- Check if have reached course end for while loop --
@@ -174,26 +170,6 @@ if check_crazyflie_available():
         # --- fine tune x using green turf ---
         print("Dialing in on the green...")
         curr = slide_green(scf, curr, cap, DEFAULT_VELOCITY/3, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_DX)
-        # _, frame = time_averaged_frame(cap)
-        # green = green_filter(frame) # super accomodating
-        # # green_from_top = px_green_from_top(green)
-        # x, green_from_top, w, h = cv2.boundingRect(green)
-        # green_list = [green_from_top]*3 # moving average
-        # c = 0
-        # print(c, ' green from top', green_from_top)
-        # while abs(np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) > GREEN_MARGIN:
-        #     c+=1
-        #     print("\tGreen from top: ", np.mean(green_list))
-        #     forwards = (np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) < 0
-        #     curr = relative_move(scf, curr, [forwards*GREEN_DX, 0, 0], DEFAULT_VELOCITY/3, True)
-            
-        #     _, frame = time_averaged_frame(cap)
-        #     green = green_filter(frame) # super accomodating
-        #     x, green_from_top, w, h = cv2.boundingRect(green)
-        #     # green_from_top = px_green_from_top(green)
-        #     green_list.append(green_from_top)
-        #     green_list.pop(0)
-        #     print(c, ' green from top', np.mean(green_list))
 
 
         # --- end of the obstacles - up to table height ----
@@ -201,28 +177,5 @@ if check_crazyflie_available():
         
         # move to the book
         curr = slide_to_book(scf, curr, DEFAULT_VELOCITY*0.1, WIDTH, SAFETY_DISTANCE_TO_SIDE, cap, model, confidence)
-
-        # 12/12, 8:47 commented out code below
-        # --- centre book in frame ---
-        # in_left_half = (curr[1] - WIDTH/2) > 0
-        # go_left = not in_left_half
-        # while True:
-        #     ret, frame = time_averaged_frame(cap)
-        #     # left of frame is 0 line
-        #     book_center_px = find_book(model, frame, confidence)
-        #     if ret and book_center_px != -1:
-        #         if np.linalg.norm(book_center_px-320) < BOOK_MARGIN_PX:
-        #             break # Success!!!
-        #         # in left half frame - move left
-        #         elif book_center_px-320 < 0:
-        #             curr = relative_move(scf, curr, [0, DY/2, 0], DEFAULT_VELOCITY, False)
-        #         else:
-        #             curr = relative_move(scf, curr, [0, -DY/2, 0], DEFAULT_VELOCITY, False)
-        #     else:
-        #         if go_left and (curr[1] - WIDTH) > -SAFETY_DISTANCE_TO_SIDE:
-        #             go_left=False
-        #         if (not go_left) and curr[1] < SAFETY_DISTANCE_TO_SIDE:
-        #             go_left = True
-        #         curr = relative_move(scf, curr, [0, go_left*DY, 0], DEFAULT_VELOCITY, False)
 
         land(cf, curr)
