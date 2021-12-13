@@ -550,6 +550,11 @@ def slide_to_book(scf, curr, v, WIDTH, SAFETY, cap, model, confidence):
         _, frame = time_averaged_frame(cap)
         book_x = find_book(model, frame, confidence)
         if ((IMWIDTH//2)-BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+BOOK_CLEAR_CENTER):
+            # stabilize
+            curr = pos_estimate(scf)
+            for _ in range(20):
+                cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+                time.sleep(0.05)
             break
 
         # sus time.sleep()?
