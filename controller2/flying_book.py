@@ -5,7 +5,7 @@ from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 import numpy as np
 from helperfunctions import time_averaged_frame
-from helperfunctions import start_video, detect_book, check_crazyflie_available, key_press
+from helperfunctions import start_video, check_crazyflie_available
 
 # load the COCO class names
 with open('Lab9_Supplement/object_detection_classes_coco.txt', 'r') as f:
@@ -20,9 +20,44 @@ model = cv2.dnn.readNet(model='Lab9_Supplement/frozen_inference_graph.pb',
                         framework='TensorFlow')
 
 group_number = 12
-camera_number = 0
+camera_number = 1
 tracking_label = 10             # traffic light COCO dataset
 confidence = 0.45               # confidence of detection
+
+def detect_book(model, blurred, confidence, COLORS, class_names):
+    """Detect all books in the frame"""
+    image = blurred
+
+    # create blob from image
+    blob = cv2.dnn.blobFromImage(image=image, size=(300, 300), mean=(104, 117, 123), 
+                                             swapRB=True)
+   
+    # forward propagate image
+    model.setInput(blob)
+    detections = model.forward()
+    image_height, image_width, _ = image.shape
+    
+    # select detections that match selected class label
+    for detection in detections[0, 0, :, :]:
+        if detection[2] > confidence:
+            # get the class id
+            class_id = detection[1]
+            # map the class id to the class
+            class_name = class_names[int(class_id)-1]
+            color = COLORS[int(class_id)]
+            # get the bounding box coordinates
+            box_x = detection[3] * image_width
+            box_y = detection[4] * image_height
+            # get the bounding box width and height
+            box_width = detection[5] * image_width
+            box_height = detection[6] * image_height
+            # draw a rectangle around each detected object
+            cv2.rectangle(image, (int(box_x), int(box_y)), (int(box_width), int(box_height)), color, thickness=1)
+            # put the FPS text on top of the frame
+            text = class_name + ' ' + '%.2f' % (detection[2])
+            cv2.putText(image, text, (int(box_x), int(box_y - 5)), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, color, 1)
+
+    cv2.imshow('image', image)
 
 if check_crazyflie_available():
     with SyncCrazyflie(f'radio://0/{group_number}/2M', cf=Crazyflie(rw_cache='./cache')) as scf:
@@ -40,19 +75,17 @@ if check_crazyflie_available():
 
 
         curr = [0,0,0]
-        
-        with keyboard.Listener(on_press= lambda key: key_press(key, cf, cap, curr)) as listener:
-                    
-                # Capture frame-by-frame
-                while True:
-                    # ret, frame = cap.read()
-                    ret, frame = time_averaged_frame(cap)
-                    if ret:
-                        blurred = cv2.GaussianBlur(frame, (3,3), 0)
-                        detect_book(model, blurred, confidence, COLORS, class_names)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
-                
+    
+        # Capture frame-by-frame
+        while True:
+            # ret, frame = cap.read()
+            ret, frame = time_averaged_frame(cap)
+            if ret:
+                blurred = cv2.GaussianBlur(frame, (3,3), 0)
+                detect_book(model, blurred, confidence, COLORS, class_names)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            
         print("Touchdown")
 else: 
     print("DorEye down mayday")

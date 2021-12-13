@@ -308,10 +308,10 @@ def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_D
     green_from_top = px_green_from_top(green)
 
     # Set up moving average
-    green_list, c = [green_from_top]*8, 0 # moving average, tuned from 10
+    green_list, c = [green_from_top]*5, 0 # moving average, tuned from 10
     print(c, ' green from top', green_from_top)
 
-    while abs(np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) > GREEN_MARGIN or max(green_list)-min(green_list) > GREEN_MARGIN*2:
+    while abs(np.mean(green_list)-GREEN_PX_TOP_BOT_IDEAL) > GREEN_MARGIN or max(green_list)-min(green_list) > GREEN_MARGIN*2.7:
         c+=1
         
         # make move
@@ -550,19 +550,36 @@ def slide_to_book(scf, curr, v, WIDTH, SAFETY, cap, model, confidence):
         _, frame = time_averaged_frame(cap)
         book_x = find_book(model, frame, confidence)
         if ((IMWIDTH//2)-BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+BOOK_CLEAR_CENTER):
+            print("Found Roger once")
             # stabilize
             curr = pos_estimate(scf)
             for _ in range(20):
+                print("Hovering once seen Roger")
                 cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
-                time.sleep(0.05)
-            break
+                time.sleep(0.1)
+            
+            _, frame = time_averaged_frame(cap)
+            book_x = find_book(model, frame, confidence)
+
+            if (IMWIDTH//2)-5*BOOK_CLEAR_CENTER < book_x <(IMWIDTH//2)-BOOK_CLEAR_CENTER:
+                print("Roger to the left!")
+                curr = relative_move(scf, curr, [0, 0.04, 0], 0.1, False)
+                break
+            if (IMWIDTH//2)+BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+5*BOOK_CLEAR_CENTER:
+                print("Roger to the right!")
+                curr = relative_move(scf, curr, [0, -0.04, 0], 0.1, False)
+                break
+            
+            if ((IMWIDTH//2)-BOOK_CLEAR_CENTER < book_x < (IMWIDTH//2)+BOOK_CLEAR_CENTER):
+                print("Found Roger twice!")
+                break
 
         # sus time.sleep()?
         while time.time() < dt*time_index+start_time:
             continue
 
         # update going_left if reaching a boundary
-        if (going_left and curr[1] >= WIDTH-SAFETY) or (not going_left and curr[1] <= SAFETY):
+        if (going_left and curr[1] >= WIDTH-SAFETY/2) or (not going_left and curr[1] <= SAFETY/2):
             going_left = not going_left
 
     # stabilize

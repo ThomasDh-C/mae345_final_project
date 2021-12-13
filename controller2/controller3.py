@@ -13,7 +13,7 @@ from helperfunctions import *
 
 # important constants
 group_number = 12
-camera_number = 0 # 1 for Thomas, 0 for Jacob
+camera_number = 1 # 1 for Thomas, 0 for Jacob
 tracking_label = 1              # person COCO dataset
 confidence = 0.3                # confidence of detection
 
@@ -35,10 +35,10 @@ L_VS_R = 2 #px
 BOOK_MARGIN_PX = 20
 WIDTH = 1.32
 LENGTH = 2.75 # tuned up from 2.7 since consistently undershoots 
-CLEAR_CENTER = 58 # pixel column clear to end needed, tuned from 60
+CLEAR_CENTER = 60 # pixel column clear to end needed, tuned from 58
 CLEAR_CENTER_LR = 20 # pixels
 GREEN_MARGIN = 5
-GREEN_PX_TOP_BOT_IDEAL = 95
+GREEN_PX_TOP_BOT_IDEAL = 110 # tune up to get closer, down to get further
 
 # load the DNN model
 model = cv2.dnn.readNet(model='Lab9_Supplement/frozen_inference_graph.pb',
@@ -87,6 +87,8 @@ if check_crazyflie_available():
         obstacles_avoided = 0
         # --- Move forward, move round obstacles, reach kalman end ---
         print(f"Well positioned at x={curr[1]} and ready to move forward")
+        has_checked_left = False
+        has_checked_right = False
         while not reached_kalman_end:
             # -- Find distance to closest obstacle 5 times for reliability --
             obj_distance = []
@@ -114,11 +116,16 @@ if check_crazyflie_available():
                 obstacles_avoided+=1
                 print("Time to look around...")
                 curr = pos_estimate(scf)
+
+                if has_checked_left and has_checked_right:
+                    print("We have to go back - back to the future!")
+                    curr = relative_move(scf, curr, [-0.1, 0, 0], DEFAULT_VELOCITY*.4, True)
                 
                 # - (if possible will go right) peek right -
                 dist_right = 0
                 if not curr[1] < SAFETY_DISTANCE_TO_END:
                     print("Peeking right")
+                    has_checked_right = True
                     dists_list = []
                     curr_angle = rotate_to(scf, curr, curr_angle, -90)
                     for i in range(3):
@@ -135,6 +142,7 @@ if check_crazyflie_available():
                 dist_left = 0
                 if not curr[1] > WIDTH - SAFETY_DISTANCE_TO_SIDE:
                     print("Peeking left")
+                    has_checked_left = True
                     curr_angle = rotate_to(scf, curr, curr_angle, 90)
                     dists_list = []
                     for i in range(3):
@@ -230,7 +238,7 @@ if check_crazyflie_available():
         curr = relative_move(scf, curr, [0,0,0.5], .1, True)
         
         # move to the book
-        curr = slide_to_book(scf, curr, DEFAULT_VELOCITY*0.2, WIDTH, SAFETY_DISTANCE_TO_SIDE, cap, model, confidence)
+        curr = slide_to_book(scf, curr, DEFAULT_VELOCITY*0.1, WIDTH, SAFETY_DISTANCE_TO_SIDE, cap, model, confidence)
 
         # 12/12, 8:47 commented out code below
         # --- centre book in frame ---
