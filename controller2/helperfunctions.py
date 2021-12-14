@@ -153,14 +153,14 @@ def left_right_slide_to_start_point(scf, start, end, v_first_slide, v_to_final, 
         cf.commander.send_position_setpoint(temp_pos[0], temp_pos[1], temp_pos[2], 0)
 
         # compensate for high speed :)
-        curr_pos_time = time.time()
-        curr = pos_estimate(scf)
+        # curr_pos_time = time.time()
+        # curr = pos_estimate(scf)
         _, frame = time_averaged_frame(cap)
         red = red_filter(frame) # super accomodating
         dist_center_obs = center_vertical_obs_bottom(red, CLEAR_CENTER) # splits frame in two as discussed
-        red_pos_time = time.time()
-        curr_pos_step = (red_pos_time-curr_pos_time)*v_first_slide*xy_grad/xy_dist
-        dist_to_obs_center.append((dist_center_obs, [curr[0]+curr_pos_step[0],curr[1]+curr_pos_step[1], curr[2]]))
+        # red_pos_time = time.time()
+        # curr_pos_step = (red_pos_time-curr_pos_time)*v_first_slide*xy_grad/xy_dist
+        dist_to_obs_center.append((dist_center_obs, [temp_pos[0],temp_pos[1], temp_pos[2]]))
         while time.time()<step_t*step_idx+start_time:
             continue
     
@@ -262,7 +262,7 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
     dy = v*dt*(1,-1)[right]
     start_time, c = time.time(), 0
 
-    while (right and curr[1] > SAFETY_DISTANCE_TO_SIDE/5) or (not right and curr[1] < WIDTH-SAFETY_DISTANCE_TO_SIDE/5):
+    while (right and curr[1] > -SAFETY_DISTANCE_TO_SIDE) or (not right and curr[1] < WIDTH+SAFETY_DISTANCE_TO_SIDE/5):
         curr[1]+=dy
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], (1,-1)[right]*90)
         # print('position updated')
@@ -558,7 +558,7 @@ def slide_to_book(scf, curr, v, WIDTH, SAFETY, cap, model, confidence):
         print('book_x dist from center', abs(book_x-IMWIDTH/2))
         if abs(book_x-IMWIDTH/2) < 20:
             
-            while ((going_left and curr[1] < WIDTH-SAFETY/4) or (not going_left and curr[1] > SAFETY/4)):
+            while ((going_left and curr[1] < WIDTH+SAFETY/4) or (not going_left and curr[1] > -SAFETY/4)):
                 c+=1
                 # if first_loop:
                 #     first_loop = False

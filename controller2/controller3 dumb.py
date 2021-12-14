@@ -13,7 +13,7 @@ from helperfunctions import *
 
 # important constants
 group_number = 12
-camera_number = 1 # 1 for Thomas, 0 for Jacob
+camera_number = 0 # 1 for Thomas, 0 for Jacob
 tracking_label = 1              # person COCO dataset
 confidence = 0.3                # confidence of detection
 
@@ -118,7 +118,7 @@ if check_crazyflie_available():
                 if has_checked_left and has_checked_right:
                     has_checked_left, has_checked_right = False, False
                     print("We have to go back - back to the future!")
-                    curr = relative_move(scf, curr, [-0.4, 0, 0], DEFAULT_VELOCITY*.4, True)
+                    curr = relative_move(scf, curr, [-0.2, 0, 0], DEFAULT_VELOCITY*.4, True)
                 
                 # - go right unless: in right half or -
                 go_right = True
@@ -165,12 +165,16 @@ if check_crazyflie_available():
 
         print("Made it to the end of the course, moving to the right side of the course")
         # move to the right side of the course for consistent green measurement
-        curr = relative_move(scf, curr, [0, -curr[1] + SAFETY_DISTANCE_TO_SIDE/4, 0], DEFAULT_VELOCITY*.2, True)
+        curr = move_to_setpoint(scf, curr, [curr[0], SAFETY_DISTANCE_TO_SIDE*1.5, curr[2]], DEFAULT_VELOCITY*0.2, True)
+        # curr = relative_move(scf, curr, [0, -curr[1] + SAFETY_DISTANCE_TO_SIDE/4, 0], DEFAULT_VELOCITY*.2, True)
 
+        
         # --- fine tune x using green turf ---
         print("Dialing in on the green...")
         curr = slide_green(scf, curr, cap, DEFAULT_VELOCITY/3, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_DX)
 
+        print("Got the green")
+        curr = move_to_setpoint(scf, curr, [curr[0], -SAFETY_DISTANCE_TO_SIDE, curr[2]], DEFAULT_VELOCITY*0.2, True)
 
         # --- end of the obstacles - up to table height ----
         curr = relative_move(scf, curr, [0,0,0.5], .1, True)
