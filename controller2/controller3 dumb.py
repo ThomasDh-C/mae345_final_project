@@ -11,6 +11,22 @@ from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from helperfunctions import *
 
+# -----------------------
+# Brief Method:\
+# 1. take off from very right corner
+# 2. slide to the left taking diistances in the center of the frame 
+#    --> smooth these to account for noise and align with best starting pos
+# 3. if heads towards farthest obstacle, will forward slide and then stop in front of obstacle, 
+#    if there is a gap then forward slides through the gap
+# 4. if can't move forwards rotate towards the side (will alternate between sliding left and right for each obstacle) and slide until you hit an obstacle
+# 5. Turn forwards, if no obstacles in front keep going forwards. 
+#    If obstacel in front do inital move of sliding back to starting point (as know move is safe). Pick best new position
+# 5. once reach end of the course, detect the end of the green mat and move forward until reached specified height of green mat's end
+# 6. rise upwards and go to the far right of the table.
+# 7. begin book detection, slide from right to left to look for person on a book within a certain frame.
+# 8. move left and land if detected book is on left side of frame, land if in center, move right and land if detected book is on right side of frame
+# ---------------------
+
 # important constants
 group_number = 12
 camera_number = 0 # 1 for Thomas, 0 for Jacob
