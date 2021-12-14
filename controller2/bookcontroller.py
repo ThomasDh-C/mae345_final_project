@@ -63,7 +63,8 @@ if check_crazyflie_available():
 
             while cap.isOpened() and not exit_loop:
                 # Try to read image
-                ret, frame = cap.read()
+                # ret, frame = cap.read()
+                ret, frame = cv2.imread('imgs/85.png')
                 if ret:
                     det = detect_book(model, frame, tracking_label, confidence) 
                     if det is not None:

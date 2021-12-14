@@ -221,7 +221,7 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
     dt = .15
     dx = v*dt
     start_time, c = time.time(), 0
-    while pos_estimate(scf)[0] < max_x:
+    while curr[0] < max_x:
         curr[0]+=dx
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
         c+=1
@@ -230,7 +230,8 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
         _, frame = time_averaged_frame(cap)
         red = red_filter(frame) # super accomodating
         dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
-        if dist < VERY_CLEAR_PX: 
+        if dist < VERY_CLEAR_PX:
+            print('Current slide height is', curr[2])
             for _ in range(10):
                 cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
                 time.sleep(0.1)
@@ -240,6 +241,7 @@ def forward_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, max_x, CLEAR_CENTER, cap):
             if dist < VERY_CLEAR_PX: 
                 cv2.imwrite(f'imgs/very_clear_frame_raw.png', frame)
                 cv2.imwrite(f'imgs/very_clear_frame_filtered.png', red)
+                print('Red filter caused slide to stop')
                 break
 
         while time.time()<dt*c+start_time:
@@ -280,8 +282,8 @@ def left_right_slide_to_obs(scf, curr, v, VERY_CLEAR_PX, WIDTH, SAFETY_DISTANCE_
             dist = center_vertical_obs_bottom(red, CLEAR_CENTER)
             if dist < VERY_CLEAR_PX:
                 print('Distance too short: ', dist)
-                lr = ['left','right'][right]
-                cv2.imwrite(f'imgs/{lr}_stop_point.png', red)
+                # lr = ['left','right'][right]
+                # cv2.imwrite(f'imgs/{lr}_stop_point.png', red)
                 break
 
         while time.time()<dt*c+start_time:
@@ -312,6 +314,7 @@ def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_D
         
         # make move
         forwards = (-1, 1)[np.mean(green_list) < GREEN_PX_TOP_BOT_IDEAL]
+        print(c, ' green from top', np.mean(green_list), 'forward(1) backward(-1)', forwards)
         steps = 10
         x_dist = forwards*GREEN_DX
         x_step, t = x_dist/steps, abs(x_dist/v/steps)
@@ -333,7 +336,7 @@ def slide_green(scf, curr, cap, v, GREEN_PX_TOP_BOT_IDEAL, GREEN_MARGIN, GREEN_D
         green_from_top = px_green_from_top(green)
         green_list.append(green_from_top)
         green_list.pop(0)
-        print(c, ' green from top', np.mean(green_list))
+        
     
     # stabilise
     for _ in range(20):
@@ -543,34 +546,59 @@ def slide_to_book(scf, curr, v, WIDTH, SAFETY, cap, model, confidence):
     og_v = v
     
     book_x = 0
-    while (going_left and curr[1] < WIDTH-SAFETY/4) or (not going_left and curr[1] > SAFETY/4):
-        
+    c=1
+    while (going_left and curr[1] < WIDTH) or (not going_left and curr[1] > SAFETY/5):
+        c+=1
+        first_loop = True
         # Now look for the book
         _, frame = time_averaged_frame(cap)
         book_x = find_book(model, frame, confidence)
+        cv2.imwrite(f'imgs/{c}.png', frame)
+        
+        print('book_x dist from center', abs(book_x-IMWIDTH/2))
+        if abs(book_x-IMWIDTH/2) < 20:
+            
+            while ((going_left and curr[1] < WIDTH-SAFETY/4) or (not going_left and curr[1] > SAFETY/4)):
+                c+=1
+                # if first_loop:
+                #     first_loop = False
+                for _ in range(4):
+                    cf.commander.send_hover_setpoint(0, 0, 0, curr[2])
+                    time.sleep(0.1)
+                
+                distance_for_print = 300
+                attempts = 0
+                book_x = 0
+                while distance_for_print > 50:
+                    attempts+=1
+                    if attempts > 6: 
+                        break
+                    _, frame = time_averaged_frame(cap)
+                    book_x = find_book(model, frame, confidence)
+                    distance_for_print = abs(book_x-IMWIDTH/2)
+                if attempts > 6:
+                    break
 
-        while abs(book_x-IMWIDTH/2) < 30 and ((going_left and curr[1] < WIDTH-SAFETY/4) or (not going_left and curr[1] > SAFETY/4)):
-            print('large found book')
-            _, frame = time_averaged_frame(cap)
-            book_x = find_book(model, frame, confidence)
+                print(f'large found book at dist from center {distance_for_print}')
+                cv2.imwrite(f'imgs/{c}.png', frame)
 
-            # calculate new position constants as needed
-            v = og_v/2
-            inside_l = book_x-IMWIDTH/2 < 0
-            dy = v*dt*(-1, 1)[inside_l]
+                # calculate new position constants as needed
+                slow_v = og_v
+                inside_l = book_x-IMWIDTH/2 < 0
+                dy = 0.04*(-1, 1)[inside_l]
 
-            # if in the center of the centered frame
-            if IMWIDTH/2-BOOK_CLEAR_CENTER < book_x < IMWIDTH/2+BOOK_CLEAR_CENTER:
-                print("Found Roger once")
-                return pos_estimate(scf)
+                # if in the center of the centered frame
+                if IMWIDTH/2-BOOK_CLEAR_CENTER < book_x < IMWIDTH/2+BOOK_CLEAR_CENTER:
+                    print("Found Roger once")
+                    return pos_estimate(scf)
 
-            curr[1] += dy
-            cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
-            time.sleep(dt)
+                curr[1] += dy
+                cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
+                time.sleep(dt)
 
         
         # speedy position update
-        dy = og_v*dt*(-1, 1)[going_left]
+        dy = 2*og_v*dt*(-1, 1)[going_left]
         curr[1] += dy
         cf.commander.send_position_setpoint(curr[0], curr[1], curr[2], 0)
 

@@ -38,6 +38,7 @@ def detect_book(model, blurred, confidence, COLORS, class_names):
     image_height, image_width, _ = image.shape
     
     # select detections that match selected class label
+    first = True
     for detection in detections[0, 0, :, :]:
         if detection[2] > confidence:
             # get the class id
@@ -56,6 +57,10 @@ def detect_book(model, blurred, confidence, COLORS, class_names):
             # put the FPS text on top of the frame
             text = class_name + ' ' + '%.2f' % (detection[2])
             cv2.putText(image, text, (int(box_x), int(box_y - 5)), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, color, 1)
+            book_x = box_x + box_width/2
+            if first:
+                first = False
+                print('book_x dist from center', abs(book_x-640/2))
 
     cv2.imshow('image', image)
 
@@ -79,7 +84,8 @@ if check_crazyflie_available():
         # Capture frame-by-frame
         while True:
             # ret, frame = cap.read()
-            ret, frame = time_averaged_frame(cap)
+            # ret, frame = time_averaged_frame(cap)
+            ret, frame = cv2.imread('imgs/85.png')
             if ret:
                 blurred = cv2.GaussianBlur(frame, (3,3), 0)
                 detect_book(model, blurred, confidence, COLORS, class_names)
